@@ -16,10 +16,12 @@ struct Sensor {
 
 int initialize_sensors(struct Sensor sensors[], 
                        int count,
+                       double terminal_velocity,
                        double start_x,
                        double start_y,
                        double start_z) {
     for (int i = 0; i < count; i++) {
+        sensors[i].terminal_velocity = terminal_velocity;
         sensors[i].x_pos = start_x;
         sensors[i].y_pos = start_y;
         sensors[i].z_pos = start_z;
@@ -30,17 +32,26 @@ int initialize_sensors(struct Sensor sensors[],
     return 0;
 }
 
-int update_velocity(struct Sensor sensors[], int sensor_count, double time_resolution, double gravity) {
+int update_velocity(struct Sensor sensors[], int sensor_count, double time_resolution, double gravity, int debug) {
     for (int i = 0; i < sensor_count; i++) {
         if (sensors[i].z_pos > 0) { 
-            // to-do: add code to check for terminal velocity 
-            sensors[i].z_velocity += (gravity * time_resolution);
+            if (sensors[i].z_velocity < sensors[i].terminal_velocity) {
+                if (sensors[i].z_velocity + (gravity * time_resolution) < sensors[i].terminal_velocity) {
+                    sensors[i].z_velocity += (gravity * time_resolution);
+                }
+                else {
+                    sensors[i].z_velocity = sensors[i].terminal_velocity;
+                    if (debug) {
+                        printf("Sensor %d reached terminal velocity\n", i);
+                    }
+                }
+            }
         }
     }     
     return 0;
 }
 
-int update_position(struct Sensor sensors[], int sensor_count, double time_resolution, double gravity) {
+int update_position(struct Sensor sensors[], int sensor_count, double time_resolution, double gravity, int debug) {
     for (int i = 0; i < sensor_count; i++) {
         if (sensors[i].z_pos > 0) { 
             if (sensors[i].z_pos - (sensors[i].z_velocity * time_resolution) > 0) { 
@@ -58,9 +69,10 @@ int clock_tick(struct Sensor sensors[],
                int sensor_count, 
                double* current_time, 
                double time_resolution, 
-               double gravity) {
-    update_velocity(sensors, sensor_count, time_resolution, gravity);
-    update_position(sensors, sensor_count, time_resolution, gravity); 
+               double gravity,
+               int debug) {
+    update_velocity(sensors, sensor_count, time_resolution, gravity, debug);
+    update_position(sensors, sensor_count, time_resolution, gravity, debug); 
     *current_time += time_resolution; 
     return 0;
 }
@@ -74,15 +86,16 @@ int main(int argc, char **argv) {
     double gravity = 9.80665;
     double start_x = 0;
     double start_y = 0;
-    double start_z = 1000;
+    double start_z = 30000;
     double current_time = 0;
     double time_resolution = 0.001;
+    double terminal_velocity = 8.0;
     int debug = 0;
     int verbose = 1;
 
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -101,6 +114,9 @@ int main(int argc, char **argv) {
             break;
         case 'z':
             start_z = atof(optarg);
+            break;
+        case 't':
+            terminal_velocity = atof(optarg);
             break;
         case '?':
             if (optopt == 'c')
@@ -121,12 +137,13 @@ int main(int argc, char **argv) {
     printf("Gravity: %f m/(s^2)\n", gravity);
     printf("Time resolution: %f secs/tick\n", time_resolution); 
     printf("Starting height: %f meters\n", start_z);
+    printf("Terminal velocity: %f meters/second\n", terminal_velocity);
 
     // Get sensors ready
     printf("Sensor initialization: ");
     struct Sensor sensors[sensor_count];
 
-    ret = initialize_sensors(sensors, sensor_count, start_x, start_y, start_z);
+    ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z);
     if (ret == 0) {
         printf("OK\n");
         moving_sensors = sensor_count;
@@ -137,7 +154,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_sensors != 0) {
-        clock_tick(sensors, sensor_count, &current_time, time_resolution, gravity);
+        clock_tick(sensors, sensor_count, &current_time, time_resolution, gravity, debug);
         moving_sensors = 0; 
         for (int i = 0; i < sensor_count; i++) {
             if (sensors[i].z_pos > 0) {
