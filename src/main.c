@@ -133,12 +133,13 @@ int main(int argc, char **argv) {
     double time_resolution = 0.001;
     double terminal_velocity = 8.0;
     double spread_factor = 20;
+    int random_seed = -1;
     int debug = 0;
     int verbose = 1;
 
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -164,6 +165,9 @@ int main(int argc, char **argv) {
         case 's': 
             spread_factor = atof(optarg);
             break;
+        case 'e':
+            random_seed = atoi(optarg);
+            break;
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -178,6 +182,12 @@ int main(int argc, char **argv) {
             abort ();
     }
     
+    // Seed random number generator if seed isn't specified
+    if (random_seed < 0) {
+        srand(time(NULL)); 
+        printf("Seeded random number generator\n");
+    }
+
     // Output parameters
     printf("Number of sensors: %d\n", sensor_count);
     printf("Gravity: %f m/(s^2)\n", gravity);
