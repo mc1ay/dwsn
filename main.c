@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 #define XYACCELDELTAMAX 0.005
+#define DRAGVARIANCE 0.05
 
 struct Sensor {
     double terminal_velocity;
@@ -27,7 +28,8 @@ int initialize_sensors(struct Sensor sensors[],
                        double start_z,
                        double gravity) {
     for (int i = 0; i < count; i++) {
-        sensors[i].terminal_velocity = terminal_velocity;
+        sensors[i].terminal_velocity = 
+            terminal_velocity + (terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
         sensors[i].x_pos = start_x;
         sensors[i].y_pos = start_y;
         sensors[i].z_pos = start_z;
@@ -49,7 +51,7 @@ int update_acceleration(struct Sensor sensors[], int sensor_count, double time_r
             // change x and y by random percentage of max allowed change per second
             double x_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
             double y_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
-            if (debug >= 2) {
+            if (debug >= 3) {
                 printf("Changing x/y accel for sensor %d by %f,%f\n", i, x_accel_change, y_accel_change);
             }
             sensors[i].x_acceleration += x_accel_change;
@@ -72,7 +74,7 @@ int update_velocity(struct Sensor sensors[], int sensor_count, double time_resol
                 else {
                     sensors[i].z_velocity = sensors[i].terminal_velocity;
                     if (debug >=2) {
-                        printf("Sensor %d reached terminal velocity\n", i);
+                        printf("Sensor %d reached terminal velocity of %f m/s\n", i, sensors[i].terminal_velocity);
                     }
                 }
             }
