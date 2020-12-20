@@ -220,7 +220,7 @@ int main(int argc, char **argv) {
 
     if (debug) {
         for (int i = 0; i < sensor_count; i++) {
-            printf("Sensor %d final velocity: %f,%f,%f m/s, final position: (%f, %f, %f)\n", 
+            printf("Sensor %d final velocity: %f %f %f m/s, final position: %f %f %f\n", 
                 i, 
                 sensors[i].x_velocity, 
                 sensors[i].y_velocity, 
