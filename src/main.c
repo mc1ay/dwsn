@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -18,6 +19,8 @@ struct Sensor {
     double x_acceleration;
     double y_acceleration;
     double z_acceleration;
+    double power_output;
+    double received_signals[];
 };
 
 int initialize_sensors(struct Sensor sensors[], 
@@ -26,7 +29,8 @@ int initialize_sensors(struct Sensor sensors[],
                        double start_x,
                        double start_y,
                        double start_z,
-                       double gravity) {
+                       double gravity,
+                       double power_output) {
     for (int i = 0; i < count; i++) {
         sensors[i].terminal_velocity = 
             terminal_velocity + (terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
@@ -39,6 +43,10 @@ int initialize_sensors(struct Sensor sensors[],
         sensors[i].x_acceleration = 0;
         sensors[i].y_acceleration = 0;
         sensors[i].z_acceleration = gravity;
+        sensors[i].power_output = power_output;
+        for (int j = 0; j < count; j++) {
+            sensors[i].received_signals[j] = 0;
+        }
     }
     return 0;
 }
@@ -105,6 +113,24 @@ int update_position(struct Sensor sensors[], int sensor_count, double time_resol
     return 0;
 }
 
+int update_signals(struct Sensor sensors[], int sensor_count, int debug) {
+    // Not taking noise floor into account currently
+    // Check distance to other sensor nodes and calculate free space loss
+    // to get received signal 
+    for (int i = 0; i < sensor_count; i++) {
+        for (int j = 0; j < sensor_count; j++) {
+            double distance = sqrt(
+                pow((sensors[i].x_pos - sensors[j].x_pos),2) +
+                pow((sensors[i].y_pos - sensors[j].y_pos),2) +
+                pow((sensors[i].z_pos - sensors[j].z_pos),2) 
+            );
+            sensors[i].received_signals[j] = sensors[j].power_output -
+                (20 * log(distance) + 20 * log(2400) + 32.44);
+        }
+    }
+    return 0;
+}
+
 int clock_tick(struct Sensor sensors[], 
                int sensor_count, 
                double* current_time, 
@@ -114,7 +140,8 @@ int clock_tick(struct Sensor sensors[],
                int debug) {
     update_acceleration(sensors, sensor_count, time_resolution, spread_factor, debug);
     update_velocity(sensors, sensor_count, time_resolution, debug);
-    update_position(sensors, sensor_count, time_resolution, debug); 
+    update_position(sensors, sensor_count, time_resolution, debug);
+    update_signals(sensors, sensor_count, debug); 
     *current_time += time_resolution; 
     return 0;
 }
@@ -133,13 +160,14 @@ int main(int argc, char **argv) {
     double time_resolution = 0.001;
     double terminal_velocity = 8.0;
     double spread_factor = 20;
+    double default_power_output = 20;
     int random_seed = -1;
     int debug = 0;
     int verbose = 1;
 
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -168,6 +196,9 @@ int main(int argc, char **argv) {
         case 'e':
             random_seed = atoi(optarg);
             break;
+        case 'p':
+            default_power_output = atof(optarg);
+            break;
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -195,12 +226,13 @@ int main(int argc, char **argv) {
     printf("Starting height: %f meters\n", start_z);
     printf("Terminal velocity: %f meters/second\n", terminal_velocity);
     printf("Spread factor: %f\n", spread_factor);
+    printf("Default power output: %f\n", default_power_output);
 
     // Get sensors ready
     printf("Sensor initialization: ");
-    struct Sensor sensors[sensor_count];
+    struct Sensor *sensors = malloc((sizeof(*sensors) + (sizeof(double) * sensor_count)) * sensor_count);
 
-    ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z, gravity);
+    ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z, gravity, default_power_output);
     if (ret == 0) {
         printf("OK\n");
         moving_sensors = sensor_count;
