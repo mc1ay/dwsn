@@ -172,7 +172,7 @@ int update_signals(struct Sensor* sensors, int sensor_count, double current_time
             }
         }
         if (output) {
-            if (fmod(current_time, write_interval) < time_resolution / 10) {
+            if (fmod(current_time, write_interval) < time_resolution) {
                 sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
                 FILE *fp;
                 fp  = fopen (file_path, "a");
@@ -218,7 +218,7 @@ int main(int argc, char **argv) {
     double time_resolution = 0.001;
     double terminal_velocity = 8.0;
     double spread_factor = 20;
-    double default_power_output = 20;
+    double default_power_output = 400;
     double write_interval = 1.0;
     int random_seed = -1;
     int debug = 0;
