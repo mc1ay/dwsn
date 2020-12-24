@@ -322,13 +322,7 @@ int main(int argc, char **argv) {
 
     // Get sensors ready
     printf("Initializing sensors\n");
-    //struct Sensor *sensors = (struct Sensor*)malloc((sizeof(struct Sensor) + (sizeof(double) * sensor_count)) * sensor_count);
-    //struct Sensor sensors[10];
     struct Sensor sensors[sensor_count];
-    printf("Allocated %d bytes for sensor array\n", (sizeof(struct Sensor) + (sizeof(double) * sensor_count)) * sensor_count);
-    printf("%d bytes for each sensor\n", sizeof(struct Sensor));
-    printf("%d bytes for received signals array\n", sizeof(double) * sensor_count);
-
     ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z, gravity, default_power_output, output, output_dir, debug);
     if (ret == 0) {
         printf("Initialization OK\n");
