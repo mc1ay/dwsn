@@ -161,13 +161,15 @@ int update_signals(struct Sensor* sensors, int sensor_count, double current_time
 
     for (int i = 0; i < sensor_count; i++) {
         for (int j = 0; j < sensor_count; j++) {
-            double distance = sqrt(
-                pow((sensors[i].x_pos - sensors[j].x_pos),2) +
-                pow((sensors[i].y_pos - sensors[j].y_pos),2) +
-                pow((sensors[i].z_pos - sensors[j].z_pos),2) 
-            );
-            sensors[i].received_signals[j] = sensors[j].power_output -
-                (20 * log(distance) + 20 * log(2400) + 32.44);
+            if (i != j) {
+                double distance = sqrt(
+                    pow((sensors[i].x_pos - sensors[j].x_pos),2) +
+                    pow((sensors[i].y_pos - sensors[j].y_pos),2) +
+                    pow((sensors[i].z_pos - sensors[j].z_pos),2) 
+                );
+                sensors[i].received_signals[j] = sensors[j].power_output -
+                    (20 * log(distance) + 20 * log(2400) + 32.44);
+            }
         }
         if (output) {
             if (fmod(current_time, write_interval) < time_resolution / 10) {
