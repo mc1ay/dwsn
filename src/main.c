@@ -1,8 +1,10 @@
 #include <ctype.h>
 #include <math.h>
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define XYACCELDELTAMAX 0.005
@@ -20,18 +22,44 @@ struct Sensor {
     double y_acceleration;
     double z_acceleration;
     double power_output;
-    double received_signals[];
+    double* received_signals;
 };
 
-int initialize_sensors(struct Sensor sensors[], 
-                       int count,
+int write_sensor_data(struct Sensor* sensors, int sensor_count, int id, double current_time, FILE *fp) {
+    char buffer[200];
+    sprintf(buffer, "%f %f %f %f ", current_time, sensors[id].x_pos, sensors[id].y_pos, sensors[id].z_pos);
+    fputs(buffer, fp);
+    for (int i = 0; i < sensor_count; i++) {
+        if (i < sensor_count - 1) {
+            sprintf(buffer, "%f ", sensors[id].received_signals[i]);
+        }
+        else {
+            sprintf(buffer, "%f", sensors[id].received_signals[i]);
+        }
+        fputs(buffer, fp);
+    }
+    sprintf(buffer,"\n");
+    fputs(buffer, fp);
+}
+
+int initialize_sensors(struct Sensor* sensors, 
+                       int sensor_count,
                        double terminal_velocity,
                        double start_x,
                        double start_y,
                        double start_z,
                        double gravity,
-                       double power_output) {
-    for (int i = 0; i < count; i++) {
+                       double power_output,
+                       int output,
+                       char* output_dir,
+                       int debug) {
+    char file_path[100];
+
+    if (debug) {
+        printf("Setting inital sensor coordinates to %f %f %f\n", start_x, start_y, start_z);
+    }
+
+    for (int i = 0; i < sensor_count; i++) {
         sensors[i].terminal_velocity = 
             terminal_velocity + (terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
         sensors[i].x_pos = start_x;
@@ -44,14 +72,26 @@ int initialize_sensors(struct Sensor sensors[],
         sensors[i].y_acceleration = 0;
         sensors[i].z_acceleration = gravity;
         sensors[i].power_output = power_output;
-        for (int j = 0; j < count; j++) {
+        sensors[i].received_signals = malloc(sizeof(double) * sensor_count);
+        for (int j = 0; j < sensor_count; j++) {
             sensors[i].received_signals[j] = 0;
+        }
+
+        if (output) {
+            sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
+            if (debug) {
+                printf("Creating output file \"%s\"\n", file_path);
+            }
+            FILE *fp;
+            fp  = fopen (file_path, "w");
+            write_sensor_data(sensors, sensor_count, i, 0.0, fp);
+            fclose(fp);
         }
     }
     return 0;
 }
 
-int update_acceleration(struct Sensor sensors[], int sensor_count, double time_resolution, double spread_factor, int debug) {
+int update_acceleration(struct Sensor* sensors, int sensor_count, double time_resolution, double spread_factor, int debug) {
     for (int i = 0; i < sensor_count; i++) {
         // update x/y acceleration
         // use spread_factor as percentage likelyhood that there is some change to acceleration
@@ -71,7 +111,7 @@ int update_acceleration(struct Sensor sensors[], int sensor_count, double time_r
     return 0;
 }
 
-int update_velocity(struct Sensor sensors[], int sensor_count, double time_resolution, int debug) {
+int update_velocity(struct Sensor* sensors, int sensor_count, double time_resolution, int debug) {
     for (int i = 0; i < sensor_count; i++) {
         // update z velocity
         if (sensors[i].z_pos > 0) { 
@@ -94,7 +134,7 @@ int update_velocity(struct Sensor sensors[], int sensor_count, double time_resol
     return 0;
 }
 
-int update_position(struct Sensor sensors[], int sensor_count, double time_resolution, int debug) {
+int update_position(struct Sensor* sensors, int sensor_count, double time_resolution, int debug) {
     for (int i = 0; i < sensor_count; i++) {
         // Update z position
         if (sensors[i].z_pos > 0) { 
@@ -113,10 +153,12 @@ int update_position(struct Sensor sensors[], int sensor_count, double time_resol
     return 0;
 }
 
-int update_signals(struct Sensor sensors[], int sensor_count, int debug) {
+int update_signals(struct Sensor* sensors, int sensor_count, double current_time, int debug, int output, char* output_dir, double write_interval, double time_resolution) {
     // Not taking noise floor into account currently
     // Check distance to other sensor nodes and calculate free space loss
     // to get received signal 
+    char file_path[100];
+
     for (int i = 0; i < sensor_count; i++) {
         for (int j = 0; j < sensor_count; j++) {
             double distance = sqrt(
@@ -127,22 +169,36 @@ int update_signals(struct Sensor sensors[], int sensor_count, int debug) {
             sensors[i].received_signals[j] = sensors[j].power_output -
                 (20 * log(distance) + 20 * log(2400) + 32.44);
         }
+        if (output) {
+            if (fmod(current_time, write_interval) < time_resolution / 10) {
+                sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
+                FILE *fp;
+                fp  = fopen (file_path, "a");
+                write_sensor_data(sensors, sensor_count, i, current_time, fp);
+                fclose(fp);
+            }
+        }
     }
     return 0;
 }
 
-int clock_tick(struct Sensor sensors[], 
+int clock_tick(struct Sensor* sensors, 
                int sensor_count, 
                double* current_time, 
                double time_resolution, 
                double gravity,
                double spread_factor,
-               int debug) {
+               int debug,
+               int output,
+               char* output_dir,
+               int write_interval) {
+    *current_time += time_resolution; 
+
     update_acceleration(sensors, sensor_count, time_resolution, spread_factor, debug);
     update_velocity(sensors, sensor_count, time_resolution, debug);
     update_position(sensors, sensor_count, time_resolution, debug);
-    update_signals(sensors, sensor_count, debug); 
-    *current_time += time_resolution; 
+    update_signals(sensors, sensor_count, *current_time, debug, output, output_dir, write_interval, time_resolution); 
+
     return 0;
 }
 
@@ -161,13 +217,16 @@ int main(int argc, char **argv) {
     double terminal_velocity = 8.0;
     double spread_factor = 20;
     double default_power_output = 20;
+    double write_interval = 1.0;
     int random_seed = -1;
     int debug = 0;
     int verbose = 1;
+    int output = 0;
+    char output_dir[50];
 
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -199,6 +258,9 @@ int main(int argc, char **argv) {
         case 'p':
             default_power_output = atof(optarg);
             break;
+        case 'o':
+            output = atoi(optarg);
+            break;
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -227,14 +289,49 @@ int main(int argc, char **argv) {
     printf("Terminal velocity: %f meters/second\n", terminal_velocity);
     printf("Spread factor: %f\n", spread_factor);
     printf("Default power output: %f\n", default_power_output);
+    
+    // Make log directory is output option is turned on
+    if (output) {
+        struct tm *timenow;
+        time_t now = time(NULL);
+        timenow = gmtime(&now);
+        strftime(output_dir, sizeof(output_dir), "output/run/%Y-%m-%d-%H-%M-%S", timenow);
+        printf("Creating output directory \"%s\": ", output_dir);
+
+        // Make path for timestamped directory if it doesn't already exist
+        struct stat st = {0};
+        if (stat("output", &st) == -1) {
+           mkdir("output", 0777);
+        }
+        if (stat("output/run", &st) == -1) {
+           mkdir("output/run", 0777);
+        }
+
+        // Make directory just for this run
+        ret = mkdir(output_dir,0777); 
+  
+        // check if directory is created or not 
+        if (!ret) {
+            printf("OK\n"); 
+        }
+        else { 
+            printf("Unable to create directory, exiting\n"); 
+            exit(1); 
+        } 
+    }
 
     // Get sensors ready
-    printf("Sensor initialization: ");
-    struct Sensor *sensors = malloc((sizeof(*sensors) + (sizeof(double) * sensor_count)) * sensor_count);
+    printf("Initializing sensors\n");
+    //struct Sensor *sensors = (struct Sensor*)malloc((sizeof(struct Sensor) + (sizeof(double) * sensor_count)) * sensor_count);
+    //struct Sensor sensors[10];
+    struct Sensor sensors[sensor_count];
+    printf("Allocated %d bytes for sensor array\n", (sizeof(struct Sensor) + (sizeof(double) * sensor_count)) * sensor_count);
+    printf("%d bytes for each sensor\n", sizeof(struct Sensor));
+    printf("%d bytes for received signals array\n", sizeof(double) * sensor_count);
 
-    ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z, gravity, default_power_output);
+    ret = initialize_sensors(sensors, sensor_count, terminal_velocity, start_x, start_y, start_z, gravity, default_power_output, output, output_dir, debug);
     if (ret == 0) {
-        printf("OK\n");
+        printf("Initialization OK\n");
         moving_sensors = sensor_count;
     }
     
@@ -243,7 +340,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_sensors != 0) {
-        clock_tick(sensors, sensor_count, &current_time, time_resolution, gravity, spread_factor, debug);
+        clock_tick(sensors, sensor_count, &current_time, time_resolution, gravity, spread_factor, debug, output, output_dir, write_interval);
         moving_sensors = 0; 
         for (int i = 0; i < sensor_count; i++) {
             if (sensors[i].z_pos > 0) {
