@@ -46,6 +46,8 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].busy_remaining = 0;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
         nodes[i].group_list = malloc(sizeof(int) * group_max);
+        nodes[i].function_stack = malloc(sizeof(struct Element));
+        nodes[i].function_stack->data = -1;
 
         // Set all received signals to 0 initially
         for (int j = 0; j < node_count; j++) {
@@ -133,40 +135,28 @@ int update_position(struct Node* nodes, int node_count, double time_resolution, 
     return 0;
 }
 
-int update_signals(struct Node* nodes, int node_count, double current_time, int debug, int output, char* output_dir, double write_interval, double time_resolution) {
+int update_signal(struct Node* nodes, int id, int target, int debug) {
     // Not taking noise floor into account currently
-    // Check distance to other node nodes and calculate free space loss
+    // Check distance to other target node and calculate free space loss
     // to get received signal 
-    char file_path[100];
-
-    for (int i = 0; i < node_count; i++) {
-        for (int j = 0; j < node_count; j++) {
-            if (i != j) {
-                double distance = sqrt(
-                    pow((nodes[i].x_pos - nodes[j].x_pos),2) +
-                    pow((nodes[i].y_pos - nodes[j].y_pos),2) +
-                    pow((nodes[i].z_pos - nodes[j].z_pos),2) 
-                );
-                nodes[i].received_signals[j] = nodes[j].power_output -
-                    (20 * log(distance) + 20 * log(2400) + 32.44);
-            }
-        }
-        if (output) {
-            if (fmod(current_time, write_interval) < time_resolution) {
-                sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
-                FILE *fp;
-                fp  = fopen (file_path, "a");
-                write_node_data(nodes, node_count, i, current_time, fp);
-                fclose(fp);
-            }
-        }
-    }
+    double distance = sqrt(
+        pow((nodes[id].x_pos - nodes[target].x_pos),2) +
+        pow((nodes[id].y_pos - nodes[target].y_pos),2) +
+        pow((nodes[id].z_pos - nodes[target].z_pos),2) 
+    );
+    nodes[id].received_signals[target] = nodes[target].power_output -
+        (20 * log(distance) + 20 * log(2400) + 32.44);
     return 0;
 }
 
 int write_node_data(struct Node* nodes, int node_count, int id, double current_time, FILE *fp) {
     char buffer[200];
-    sprintf(buffer, "%f %f %f %f ", current_time, nodes[id].x_pos, nodes[id].y_pos, nodes[id].z_pos);
+    sprintf(buffer, "%f %i %i %f %f %f ", current_time, 
+                                          nodes[id].active_channel,
+                                          nodes[id].current_function, 
+                                          nodes[id].x_pos, 
+                                          nodes[id].y_pos, 
+                                          nodes[id].z_pos);
     fputs(buffer, fp);
     for (int i = 0; i < node_count; i++) {
         if (i < node_count - 1) {
@@ -179,4 +169,22 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     }
     sprintf(buffer,"\n");
     fputs(buffer, fp);
+}
+
+void push(int data, struct Element** stack){
+    struct Element* element = (struct Element*)malloc(sizeof(struct Element)); 
+    element -> data = data; 
+    element -> next = *stack;  
+    (*stack) = element;  
+}
+
+void pop(struct Element** stack){
+    if(*stack != NULL){
+        struct Element* tempPtr = *stack;
+        *stack = (*stack) -> next;
+        free(tempPtr);
+    }
+    else{
+        printf("The stack is empty.\n");
+    }
 }

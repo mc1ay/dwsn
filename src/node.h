@@ -16,6 +16,11 @@
 #ifndef node_H
 #define node_H
 
+struct Element{ 
+    int data; 
+    struct Element* next; 
+};
+
 struct Node {
     double terminal_velocity;
     double x_pos;
@@ -34,13 +39,16 @@ struct Node {
     double busy_remaining;
     double* received_signals;
     int* group_list;
+    struct Element* function_stack;
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int, int); 
 int update_acceleration(struct Node*, int, double, double, int);
 int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);
-int update_signals(struct Node*, int, double, int, int, char*, double, double);
+int update_signal(struct Node*, int, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
+void push(int, struct Element**);
+void pop(struct Element**);
 
 #endif

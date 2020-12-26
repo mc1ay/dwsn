@@ -28,12 +28,25 @@ int clock_tick(struct Node* nodes,
                char* output_dir,
                int write_interval) {
     *current_time += time_resolution; 
+    char file_path[100];
 
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
-    update_signals(nodes, node_count, *current_time, debug, output, output_dir, write_interval, time_resolution); 
     update_mcu(nodes, node_count, time_resolution, debug);
+
+    // Update output files if output option specified
+    if (output) {
+        for (int i = 0; i < node_count; i++) {
+            if (fmod(*current_time, write_interval) < time_resolution) {
+                sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
+                FILE *fp;
+                fp  = fopen (file_path, "a");
+                write_node_data(nodes, node_count, i, *current_time, fp);
+                fclose(fp);
+            }
+        }
+    }
 
     return 0;
 }
