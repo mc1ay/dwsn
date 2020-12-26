@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
     double spread_factor = 20;
     double default_power_output = 400;
     double write_interval = 1.0;
+    int group_max = 5;
     int random_seed = -1;
     int debug = 0;
     int verbose = 1;
@@ -60,7 +61,7 @@ int main(int argc, char **argv) {
 
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -95,6 +96,9 @@ int main(int argc, char **argv) {
         case 'o':
             output = atoi(optarg);
             break;
+        case 'm':
+            group_max = atoi(optarg);
+            break;    
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -157,7 +161,10 @@ int main(int argc, char **argv) {
     // Get nodes ready
     printf("Initializing nodes\n");
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, terminal_velocity, start_x, start_y, start_z, gravity, default_power_output, output, output_dir, debug);
+    ret = initialize_nodes(nodes, node_count, terminal_velocity, 
+                           start_x, start_y, start_z, gravity, 
+                           default_power_output, output, output_dir, 
+                           group_max, debug);
     if (ret == 0) {
         printf("Initialization OK\n");
         moving_nodes = node_count;

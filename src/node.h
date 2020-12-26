@@ -33,9 +33,10 @@ struct Node {
     int current_function;
     double busy_remaining;
     double* received_signals;
+    int* group_list;
 };
 
-int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int); 
+int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int, int); 
 int update_acceleration(struct Node*, int, double, double, int);
 int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);

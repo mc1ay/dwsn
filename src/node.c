@@ -19,6 +19,7 @@ int initialize_nodes(struct Node* nodes,
                        double power_output,
                        int output,
                        char* output_dir,
+                       int group_max,
                        int debug) {
     char file_path[100];
 
@@ -44,9 +45,16 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].current_function = 0;
         nodes[i].busy_remaining = 0;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
+        nodes[i].group_list = malloc(sizeof(int) * group_max);
 
+        // Set all received signals to 0 initially
         for (int j = 0; j < node_count; j++) {
             nodes[i].received_signals[j] = 0;
+        }
+        
+        // Set up array for group members, use -1 for no node
+        for (int j = 0; j < group_max; j++) {
+            nodes[i].group_list[j] = -1;
         }
 
         if (output) {
