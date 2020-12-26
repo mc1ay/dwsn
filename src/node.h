@@ -28,6 +28,10 @@ struct Node {
     double y_acceleration;
     double z_acceleration;
     double power_output;
+    int transmit_active;
+    int active_channel;
+    int current_function;
+    double busy_remaining;
     double* received_signals;
 };
 

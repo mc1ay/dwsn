@@ -7,6 +7,7 @@
 **/
 
 #include "node.h"
+#include "mcu_emulation.h"
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
@@ -38,7 +39,12 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].y_acceleration = 0;
         nodes[i].z_acceleration = gravity;
         nodes[i].power_output = power_output;
+        nodes[i].transmit_active = 0;
+        nodes[i].active_channel = 0;
+        nodes[i].current_function = 0;
+        nodes[i].busy_remaining = 0;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
+
         for (int j = 0; j < node_count; j++) {
             nodes[i].received_signals[j] = 0;
         }

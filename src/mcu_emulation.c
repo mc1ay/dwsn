@@ -22,6 +22,8 @@ int mcu_run_function(struct Node* nodes, int id, int function_number, int debug)
             break;
         default:
             abort ();
+    }
+    
     return 0;
 }
 
