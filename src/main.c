@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include "node.h"
+#include "mcu_emulation.h"
 
 int clock_tick(struct Node* nodes, 
                int node_count, 
@@ -32,6 +33,7 @@ int clock_tick(struct Node* nodes,
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
     update_signals(nodes, node_count, *current_time, debug, output, output_dir, write_interval, time_resolution); 
+    update_mcu(nodes, node_count, time_resolution, debug);
 
     return 0;
 }

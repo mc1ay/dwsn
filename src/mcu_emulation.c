@@ -8,6 +8,13 @@
 
 #include "mcu_emulation.h"
 
+int update_mcu(struct Node* nodes, int node_count, double time_resolution, int debug) {
+    for (int i = 0; i < node_count; i++) {
+        mcu_run_function(nodes, i, time_resolution, debug);
+    }
+    return 0;
+}
+
 int mcu_run_function(struct Node* nodes, int id, double time_resolution, int debug) {
     int busy_time = 0;
 
@@ -31,7 +38,6 @@ int mcu_run_function(struct Node* nodes, int id, double time_resolution, int deb
         default:
             abort ();
     }
-
     return 0;
 }
 
