@@ -29,14 +29,7 @@ int mcu_run_function(struct Node* nodes,
 
     switch (nodes[id].current_function) {
         case 0:                         // initial starting point for all nodes
-            if (id % 2 == 0) {          // send half to function 1 and half to function 2
-                push(0, &nodes[id].function_stack);
-                nodes[id].current_function = 1;
-            }
-            else {
-                push(0, &nodes[id].function_stack);
-                nodes[id].current_function = 2;
-            }
+            mcu_function_main(nodes, node_count, id, time_resolution, group_max, debug);
             break;
         case 1:
             busy_time = 0.05;            // assuming 50 ms listen time per channel, update later
@@ -52,6 +45,23 @@ int mcu_run_function(struct Node* nodes,
             break;
         default:
             abort ();
+    }
+    return 0;
+}
+
+int mcu_function_main(struct Node* nodes,
+                     int node_count,
+                     int id,
+                     double time_resolution,
+                     int group_max,
+                     int debug) {
+    if (id % 2 == 0) {          // send half to function 1 and half to function 2
+        push(0, &nodes[id].function_stack);
+        nodes[id].current_function = 1;
+    }
+    else {
+        push(0, &nodes[id].function_stack);
+        nodes[id].current_function = 2;
     }
     return 0;
 }
