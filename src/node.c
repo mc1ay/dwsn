@@ -43,7 +43,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].transmit_active = 0;
         nodes[i].active_channel = 0;
         nodes[i].current_function = 0;
-        nodes[i].busy_remaining = 0;
+        nodes[i].busy_remaining = -1;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
         nodes[i].group_list = malloc(sizeof(int) * group_max);
         nodes[i].function_stack = malloc(sizeof(struct Element));
