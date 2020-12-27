@@ -29,8 +29,6 @@ int mcu_run_function(struct Node* nodes,
 
     mcu_update_busy_time(nodes, id, time_resolution, debug);
 
-    //printf("Node %d running function %d with busy_remaining of: %f\n", id, nodes[id].current_function, nodes[id].busy_remaining);
-
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
@@ -86,7 +84,6 @@ int mcu_function_main(struct Node* nodes,
         nodes[id].busy_remaining = -1;
         nodes[id].current_function = 2;
     }
-    printf("Main set busy remaining to -1\n");
     return 0;
 }
 
