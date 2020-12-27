@@ -132,17 +132,21 @@ int main(int argc, char **argv) {
     // Seed random number generator if seed isn't specified
     if (random_seed < 0) {
         srand(time(NULL)); 
-        printf("Seeded random number generator\n");
+        if (verbose) {
+            printf("Seeded random number generator\n");
+        }
     }
 
     // Output parameters
-    printf("Number of nodes: %d\n", node_count);
-    printf("Gravity: %f m/(s^2)\n", gravity);
-    printf("Time resolution: %f secs/tick\n", time_resolution); 
-    printf("Starting height: %f meters\n", start_z);
-    printf("Terminal velocity: %f meters/second\n", terminal_velocity);
-    printf("Spread factor: %f\n", spread_factor);
-    printf("Default power output: %f\n", default_power_output);
+    if (verbose) {
+        printf("Number of nodes: %d\n", node_count);
+        printf("Gravity: %f m/(s^2)\n", gravity);
+        printf("Time resolution: %f secs/tick\n", time_resolution); 
+        printf("Starting height: %f meters\n", start_z);
+        printf("Terminal velocity: %f meters/second\n", terminal_velocity);
+        printf("Spread factor: %f\n", spread_factor);
+        printf("Default power output: %f\n", default_power_output);
+    }
     
     // Make log directory is output option is turned on
     if (output) {
@@ -150,7 +154,9 @@ int main(int argc, char **argv) {
         time_t now = time(NULL);
         timenow = gmtime(&now);
         strftime(output_dir, sizeof(output_dir), "output/run/%Y-%m-%d-%H-%M-%S", timenow);
-        printf("Creating output directory \"%s\": ", output_dir);
+        if (verbose) {
+            printf("Creating output directory \"%s\": ", output_dir);
+        }
 
         // Make path for timestamped directory if it doesn't already exist
         struct stat st = {0};
@@ -166,28 +172,38 @@ int main(int argc, char **argv) {
   
         // check if directory is created or not 
         if (!ret) {
-            printf("OK\n"); 
+            if (verbose) {
+                printf("OK\n"); 
+            }
         }
         else { 
-            printf("Unable to create directory, exiting\n"); 
+            if (verbose) {
+                printf("Unable to create directory, exiting\n"); 
+            }
             exit(1); 
         } 
     }
 
     // Get nodes ready
-    printf("Initializing nodes\n");
+    if (verbose) {
+        printf("Initializing nodes\n");
+    }
     struct Node nodes[node_count];
     ret = initialize_nodes(nodes, node_count, terminal_velocity, 
                            start_x, start_y, start_z, gravity, 
                            default_power_output, output, output_dir, 
                            group_max, debug);
     if (ret == 0) {
-        printf("Initialization OK\n");
+        if (verbose) {
+            printf("Initialization OK\n");
+        }
         moving_nodes = node_count;
     }
     
     // Run until all nodes reach z = 0;
-    printf("Running simulation\n");
+    if (verbose) {
+        printf("Running simulation\n");
+    }
     t1 = clock();
 
     while (moving_nodes != 0) {
@@ -205,8 +221,10 @@ int main(int argc, char **argv) {
     double runTime = (double)(t2 - t1) / CLOCKS_PER_SEC;
 
     // Print summary information
-    printf("Simulation complete\n");
-    printf("Simulation time: %f seconds\n", runTime);        
+    if (verbose) {
+        printf("Simulation complete\n");
+        printf("Simulation time: %f seconds\n", runTime);        
+    }
 
     if (debug) {
         for (int i = 0; i < node_count; i++) {
@@ -220,7 +238,9 @@ int main(int argc, char **argv) {
                 nodes[i].z_pos);
         }
     }
-    printf("Final clock time: %f seconds\n", current_time);
+    if (verbose) {
+        printf("Final clock time: %f seconds\n", current_time);
+    }
     
     return 0;
 }
