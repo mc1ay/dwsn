@@ -16,7 +16,7 @@ int update_mcu(struct Node* nodes, int node_count, double time_resolution, int d
 }
 
 int mcu_run_function(struct Node* nodes, int node_count, int id, double time_resolution, int debug) {
-    int busy_time = 0;
+    double busy_time = 0.0;
 
     switch (nodes[id].current_function) {
         case 0:                         // initial starting point for all nodes
@@ -30,15 +30,15 @@ int mcu_run_function(struct Node* nodes, int node_count, int id, double time_res
             }
             break;
         case 1:
-            busy_time = .05;            // assuming 50 ms listen time per channel, update later
+            busy_time = 0.05;            // assuming 50 ms listen time per channel, update later
             mcu_function_scan_lfg(nodes, node_count, id, time_resolution, busy_time, debug);
             break;
         case 2:
-            busy_time = 1.0;            // broadcast LFG for 1.0 seconds
+            busy_time = 2.0;            // broadcast LFG for 2.0 seconds
             mcu_function_broadcast_lfg(nodes, id, time_resolution, busy_time, debug);
             break;
         case 3:
-            busy_time = .05;            // assuming 50ms listen time per channel
+            busy_time = 0.05;            // assuming 50ms listen time per channel
             mcu_function_find_clear_channel(nodes, node_count, id, time_resolution, busy_time, debug);
             break;
         default:
@@ -59,7 +59,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, double tim
             for (int i = 0; i < node_count; i++) {
                 if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
                     update_signal(nodes, id, i, debug);
-                } 
+                }
             }
             if (nodes[id].active_channel < 64) {       // go to next channel if less than max_channels (using 64 for now)
                 nodes[id].active_channel++;
@@ -75,22 +75,25 @@ int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, double tim
 }
 
 int mcu_function_broadcast_lfg(struct Node* nodes, int id, double time_resolution, double busy_time, int debug) {
-    if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
-        nodes[id].busy_remaining = busy_time;
+    if (nodes[id].transmit_active) { 
+        if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
+            nodes[id].busy_remaining = busy_time;
+        }
+        else if (nodes[id].busy_remaining <= busy_time && nodes[id].busy_remaining > 0) {
+            if (nodes[id].busy_remaining - time_resolution > 0) {
+                nodes[id].busy_remaining -= time_resolution;    
+            }
+            else {
+                // transmit finished
+                nodes[id].busy_remaining = 0;
+                nodes[id].transmit_active = 0;
+            }
+        }
     }
-    else if (nodes[id].busy_remaining < busy_time && nodes[id].busy_remaining > 0) {
-        if (nodes[id].busy_remaining - time_resolution > 0) {
-            nodes[id].busy_remaining -= time_resolution;    
-        }
-        else {                               // end of cycle
-            if (nodes[id].transmit_active) { // continue transmitting
-                // do nothing for now except transmit
-            }
-            else {                           // look for clear channel
-                push(1, &nodes[id].function_stack);
-                nodes[id].current_function = 3;
-            }
-        }
+    else {                           // look for clear channel
+        push(2, &nodes[id].function_stack);
+        nodes[id].busy_remaining = 0;
+        nodes[id].current_function = 3;
     }
     return 0;
 }
@@ -99,26 +102,28 @@ int mcu_function_find_clear_channel(struct Node* nodes, int node_count, int id, 
     if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
         nodes[id].busy_remaining = busy_time;
     }
-    else if (nodes[id].busy_remaining < busy_time && nodes[id].busy_remaining > 0) {
+    else if (nodes[id].busy_remaining <= busy_time && nodes[id].busy_remaining > 0) {
         if (nodes[id].busy_remaining - time_resolution > 0) {
-            nodes[id].busy_remaining -= time_resolution;    
+            nodes[id].busy_remaining -= time_resolution;  
         }
         else { 
-            for (int i=0; i < node_count; i++) {
-                if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
-                    if (nodes[id].active_channel < 64) {
-                        nodes[id].active_channel++;
+            for (int i = 0; i < node_count; i++) {
+                if (i != id) {                  // don't check own id
+                    if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
+                        if (nodes[id].active_channel < 64) {
+                            nodes[id].active_channel++;
+                            return 0;
+                        }
+                        else {
+                            nodes[id].active_channel = 0;
+                            return 0;
+                        }
                     }
-                    else {
-                        nodes[id].active_channel = 0;
-                    }
-                }
-                else {
-                    nodes[id].current_function = nodes[id].function_stack->data; // found clear channel
-                    pop(&nodes[id].function_stack);
-                    nodes[id].transmit_active = 1;
                 }
             }
+            nodes[id].current_function = nodes[id].function_stack->data; 
+            pop(&nodes[id].function_stack);
+            nodes[id].transmit_active = 1;
         }
     }
     return 0;
