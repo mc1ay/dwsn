@@ -26,14 +26,15 @@ int clock_tick(struct Node* nodes,
                int debug,
                int output,
                char* output_dir,
-               int write_interval) {
+               int write_interval,
+               int group_max) {
     *current_time += time_resolution; 
     char file_path[100];
 
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
-    update_mcu(nodes, node_count, time_resolution, debug);
+    update_mcu(nodes, node_count, time_resolution, group_max, debug);
 
     // Update output files if output option specified
     if (output) {
@@ -207,7 +208,9 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, time_resolution, gravity, spread_factor, debug, output, output_dir, write_interval);
+        clock_tick(nodes, node_count, &current_time, time_resolution, gravity,
+                   spread_factor, debug, output, output_dir, write_interval, 
+                   group_max);
         moving_nodes = 0; 
         for (int i = 0; i < node_count; i++) {
             if (nodes[i].z_pos > 0) {

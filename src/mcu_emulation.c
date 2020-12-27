@@ -8,14 +8,23 @@
 
 #include "mcu_emulation.h"
 
-int update_mcu(struct Node* nodes, int node_count, double time_resolution, int debug) {
+int update_mcu(struct Node* nodes,
+               int node_count,
+               double time_resolution,
+               int group_max,
+               int debug) {
     for (int i = 0; i < node_count; i++) {
-        mcu_run_function(nodes, node_count, i, time_resolution, debug);
+        mcu_run_function(nodes, node_count, i, time_resolution, group_max, debug);
     }
     return 0;
 }
 
-int mcu_run_function(struct Node* nodes, int node_count, int id, double time_resolution, int debug) {
+int mcu_run_function(struct Node* nodes,
+                     int node_count,
+                     int id,
+                     double time_resolution,
+                     int group_max,
+                     int debug) {
     double busy_time = 0.0;
 
     switch (nodes[id].current_function) {
@@ -31,11 +40,11 @@ int mcu_run_function(struct Node* nodes, int node_count, int id, double time_res
             break;
         case 1:
             busy_time = 0.05;            // assuming 50 ms listen time per channel, update later
-            mcu_function_scan_lfg(nodes, node_count, id, time_resolution, busy_time, debug);
+            mcu_function_scan_lfg(nodes, node_count, id, time_resolution, busy_time, group_max, debug);
             break;
         case 2:
             busy_time = 2.0;            // broadcast LFG for 2.0 seconds
-            mcu_function_broadcast_lfg(nodes, id, time_resolution, busy_time, debug);
+            mcu_function_broadcast_lfg(nodes, id, time_resolution, busy_time, group_max, debug);
             break;
         case 3:
             busy_time = 0.05;            // assuming 50ms listen time per channel
@@ -47,7 +56,13 @@ int mcu_run_function(struct Node* nodes, int node_count, int id, double time_res
     return 0;
 }
 
-int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, double time_resolution, double busy_time, int debug) {
+int mcu_function_scan_lfg(struct Node* nodes,
+                          int node_count,
+                          int id,
+                          double time_resolution,
+                          double busy_time,
+                          int group_max,
+                          int debug) {
     if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
         nodes[id].busy_remaining = busy_time;
     }
@@ -74,7 +89,12 @@ int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, double tim
     return 0;
 }
 
-int mcu_function_broadcast_lfg(struct Node* nodes, int id, double time_resolution, double busy_time, int debug) {
+int mcu_function_broadcast_lfg(struct Node* nodes,
+                               int id,
+                               double time_resolution,
+                               double busy_time,
+                               int group_max,
+                               int debug) {
     if (nodes[id].transmit_active) { 
         if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
             nodes[id].busy_remaining = busy_time;
@@ -98,7 +118,12 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id, double time_resolutio
     return 0;
 }
 
-int mcu_function_find_clear_channel(struct Node* nodes, int node_count, int id, double time_resolution, double busy_time, int debug) {
+int mcu_function_find_clear_channel(struct Node* nodes,
+                                    int node_count,
+                                    int id,
+                                    double time_resolution,
+                                    double busy_time,
+                                    int debug) {
     if (nodes[id].busy_remaining == 0) {     // if busy_time is zero node just entered this function
         nodes[id].busy_remaining = busy_time;
     }
