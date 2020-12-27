@@ -169,6 +169,8 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     }
     sprintf(buffer,"\n");
     fputs(buffer, fp);
+
+    return 0;
 }
 
 void push(int data, struct Element** stack){
