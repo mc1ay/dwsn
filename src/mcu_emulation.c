@@ -75,14 +75,10 @@ int mcu_function_main(struct Node* nodes,
                      int group_max,
                      int debug) {
     if (id % 2 == 0) {          // send half to function 1 and half to function 2
-        push(0, &nodes[id].function_stack);
-        nodes[id].busy_remaining = -1;
-        nodes[id].current_function = 1;
+        mcu_call(nodes, id, 0, 1);
     }
     else {
-        push(0, &nodes[id].function_stack);
-        nodes[id].busy_remaining = -1;
-        nodes[id].current_function = 2;
+        mcu_call(nodes, id, 0, 2);
     }
     return 0;
 }
@@ -121,9 +117,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
                 nodes[id].transmit_active = 0;
     }
     else {                           // look for clear channel
-        push(2, &nodes[id].function_stack);
-        nodes[id].busy_remaining = -1;
-        nodes[id].current_function = 3;
+        mcu_call(nodes, id, 2, 3);
     }
     return 0;
 }
@@ -148,10 +142,8 @@ int mcu_function_find_clear_channel(struct Node* nodes,
             }
         }
     }
-    nodes[id].current_function = nodes[id].function_stack->data; 
-    pop(&nodes[id].function_stack);
-    nodes[id].busy_remaining = -1;
     nodes[id].transmit_active = 1;
+    mcu_return(nodes, id);
     return 0;
 }
 
@@ -167,5 +159,20 @@ int mcu_update_busy_time(struct Node* nodes,
             nodes[id].busy_remaining = 0;
         } 
     }
+    return 0;
+}
+
+int mcu_call(struct Node* nodes, int id, int caller, int function_number) {
+    push(caller, &nodes[id].function_stack);
+    nodes[id].busy_remaining = -1;
+    nodes[id].current_function = function_number;
+    return 0;
+}
+
+int mcu_return(struct Node* nodes, int id) {
+    nodes[id].current_function = nodes[id].function_stack->data; 
+    pop(&nodes[id].function_stack);
+    nodes[id].busy_remaining = -1;
+
     return 0;
 }
