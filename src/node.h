@@ -40,6 +40,7 @@ struct Node {
     double* received_signals;
     int* group_list;
     struct Element* function_stack;
+    char* send_packet[256];
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int, int); 
