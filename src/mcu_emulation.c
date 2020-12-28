@@ -143,7 +143,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
         }
     }
     nodes[id].transmit_active = 1;
-    mcu_return(nodes, id);
+    mcu_return(nodes, id, 0);
     return 0;
 }
 
@@ -169,9 +169,10 @@ int mcu_call(struct Node* nodes, int id, int caller, int function_number) {
     return 0;
 }
 
-int mcu_return(struct Node* nodes, int id) {
+int mcu_return(struct Node* nodes, int id, int return_value) {
     nodes[id].current_function = nodes[id].function_stack->data; 
     pop(&nodes[id].function_stack);
+    nodes[id].return_value = return_value;
     nodes[id].busy_remaining = -1;
 
     return 0;

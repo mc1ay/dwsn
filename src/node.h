@@ -40,6 +40,7 @@ struct Node {
     double* received_signals;
     int* group_list;
     struct Element* function_stack;
+    int return_value;
     char* send_packet[256];
 };
 
