@@ -161,6 +161,7 @@ int mcu_function_check_channel_busy(struct Node* nodes,
             }
         }
     }
+    mcu_return(nodes, id, 0);
     return 0;    
 }
 
