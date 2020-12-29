@@ -32,7 +32,7 @@ int mcu_run_function(struct Node* nodes,
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
-                mcu_function_main(nodes, node_count, id, time_resolution, group_max, debug);
+                mcu_function_main(nodes, node_count, id, group_max, debug);
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {
@@ -40,7 +40,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_scan_lfg(nodes, node_count, id, time_resolution, busy_time, group_max, debug);
+                    mcu_function_scan_lfg(nodes, node_count, id, group_max, debug);
                 }
                 break;
             case 2:
@@ -49,7 +49,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_broadcast_lfg(nodes, id, time_resolution, busy_time, group_max, debug);
+                    mcu_function_broadcast_lfg(nodes, id, group_max, debug);
                 }
                 break;
             case 3:
@@ -58,7 +58,16 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_find_clear_channel(nodes, node_count, id, time_resolution, busy_time, debug);
+                    mcu_function_find_clear_channel(nodes, node_count, id, debug);
+                }
+                break;
+            case 4:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.05;       // assuming 50ms listen time per channel
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_check_channel_busy(nodes, node_count, id, debug);
                 }
                 break;
             default:
@@ -71,7 +80,6 @@ int mcu_run_function(struct Node* nodes,
 int mcu_function_main(struct Node* nodes,
                      int node_count,
                      int id,
-                     double time_resolution,
                      int group_max,
                      int debug) {
     if (id % 2 == 0) {          // send half to function 1 and half to function 2
@@ -86,8 +94,6 @@ int mcu_function_main(struct Node* nodes,
 int mcu_function_scan_lfg(struct Node* nodes,
                           int node_count,
                           int id,
-                          double time_resolution,
-                          double busy_time,
                           int group_max,
                           int debug) {
     for (int i = 0; i < node_count; i++) {
@@ -108,8 +114,6 @@ int mcu_function_scan_lfg(struct Node* nodes,
 
 int mcu_function_broadcast_lfg(struct Node* nodes,
                                int id,
-                               double time_resolution,
-                               double busy_time,
                                int group_max,
                                int debug) {
     if (nodes[id].transmit_active) { 
@@ -125,8 +129,6 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
 int mcu_function_find_clear_channel(struct Node* nodes,
                                     int node_count,
                                     int id,
-                                    double time_resolution,
-                                    double busy_time,
                                     int debug) {
     for (int i = 0; i < node_count; i++) {
         if (i != id) {                  // don't check own id
@@ -145,6 +147,21 @@ int mcu_function_find_clear_channel(struct Node* nodes,
     nodes[id].transmit_active = 1;
     mcu_return(nodes, id, 0);
     return 0;
+}
+
+int mcu_function_check_channel_busy(struct Node* nodes,
+                                    int node_count,
+                                    int id,
+                                    int debug) {
+    for (int i = 0; i < node_count; i++) {
+        if (i != id) {                  // don't check own id
+            if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
+                mcu_return(nodes, id, 1);
+                return 0;
+            }
+        }
+    }
+    return 0;    
 }
 
 int mcu_update_busy_time(struct Node* nodes,
