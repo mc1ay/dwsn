@@ -46,7 +46,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].busy_remaining = -1;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
         nodes[i].group_list = malloc(sizeof(int) * group_max);
-        nodes[i].function_stack = malloc(sizeof(struct Element));
+        nodes[i].function_stack = malloc(sizeof(struct FS_Element));
         nodes[i].function_stack->data = -1;
 
         // Set all received signals to 0 initially
@@ -173,16 +173,16 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     return 0;
 }
 
-void push(int data, struct Element** stack){
-    struct Element* element = (struct Element*)malloc(sizeof(struct Element)); 
+void push(int data, struct FS_Element** stack){
+    struct FS_Element* element = (struct FS_Element*)malloc(sizeof(struct FS_Element)); 
     element -> data = data; 
     element -> next = *stack;  
     (*stack) = element;  
 }
 
-void pop(struct Element** stack){
+void pop(struct FS_Element** stack){
     if(*stack != NULL){
-        struct Element* tempPtr = *stack;
+        struct FS_Element* tempPtr = *stack;
         *stack = (*stack) -> next;
         free(tempPtr);
     }

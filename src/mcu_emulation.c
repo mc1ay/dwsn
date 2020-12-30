@@ -14,6 +14,7 @@ int update_mcu(struct Node* nodes,
                int group_max,
                int debug) {
     for (int i = 0; i < node_count; i++) {
+        // To-do!!! check to make sure nodes aren't on ground
         mcu_run_function(nodes, node_count, i, time_resolution, group_max, debug);
     }
     return 0;

@@ -16,9 +16,9 @@
 #ifndef node_H
 #define node_H
 
-struct Element{ 
+struct FS_Element{ 
     int data; 
-    struct Element* next; 
+    struct FS_Element* next; 
 };
 
 struct Node {
@@ -39,7 +39,7 @@ struct Node {
     double busy_remaining;
     double* received_signals;
     int* group_list;
-    struct Element* function_stack;
+    struct FS_Element* function_stack;
     int return_value;
     char* send_packet[256];
 };
@@ -50,7 +50,7 @@ int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);
 int update_signal(struct Node*, int, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
-void push(int, struct Element**);
-void pop(struct Element**);
+void push(int, struct FS_Element**);
+void pop(struct FS_Element**);
 
 #endif
