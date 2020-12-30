@@ -173,14 +173,14 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     return 0;
 }
 
-void push(int data, struct FS_Element** stack){
+void fs_push(int data, struct FS_Element** stack){
     struct FS_Element* element = (struct FS_Element*)malloc(sizeof(struct FS_Element)); 
     element -> data = data; 
     element -> next = *stack;  
     (*stack) = element;  
 }
 
-void pop(struct FS_Element** stack){
+void fs_pop(struct FS_Element** stack){
     if(*stack != NULL){
         struct FS_Element* tempPtr = *stack;
         *stack = (*stack) -> next;

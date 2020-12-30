@@ -182,7 +182,7 @@ int mcu_update_busy_time(struct Node* nodes,
 }
 
 int mcu_call(struct Node* nodes, int id, int caller, int function_number) {
-    push(caller, &nodes[id].function_stack);
+    fs_push(caller, &nodes[id].function_stack);
     nodes[id].busy_remaining = -1;
     nodes[id].current_function = function_number;
     return 0;
@@ -190,7 +190,7 @@ int mcu_call(struct Node* nodes, int id, int caller, int function_number) {
 
 int mcu_return(struct Node* nodes, int id, int return_value) {
     nodes[id].current_function = nodes[id].function_stack->data; 
-    pop(&nodes[id].function_stack);
+    fs_pop(&nodes[id].function_stack);
     nodes[id].return_value = return_value;
     nodes[id].busy_remaining = -1;
 
