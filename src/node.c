@@ -190,3 +190,22 @@ void fs_pop(struct FS_Element** stack){
         printf("The stack is empty.\n");
     }
 }
+
+void rs_push(int returning_from, int return_to_label, struct RS_Element** stack){
+    struct RS_Element* element = (struct RS_Element*)malloc(sizeof(struct RS_Element)); 
+    element -> returning_from = returning_from; 
+    element -> return_to_label = return_to_label;
+    element -> next = *stack;  
+    (*stack) = element;  
+}
+
+void rs_pop(struct RS_Element** stack){
+    if(*stack != NULL){
+        struct RS_Element* tempPtr = *stack;
+        *stack = (*stack) -> next;
+        free(tempPtr);
+    }
+    else{
+        printf("The stack is empty.\n");
+    }
+}
