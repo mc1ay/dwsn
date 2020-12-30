@@ -16,9 +16,17 @@
 #ifndef node_H
 #define node_H
 
+// Function stack element for mcu function emulation
 struct FS_Element{ 
-    int data; 
+    int data;                                           
     struct FS_Element* next; 
+};
+
+// Function stack element for mcu function emulation
+struct RS_Element{
+    int returning_from;
+    int return_to_label;
+    struct RS_Element* next;
 };
 
 struct Node {
