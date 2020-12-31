@@ -47,7 +47,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
         nodes[i].group_list = malloc(sizeof(int) * group_max);
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
-        nodes[i].function_stack->data = -1;
+        //nodes[i].function_stack->caller = -1;
 
         // Set all received signals to 0 initially
         for (int j = 0; j < node_count; j++) {
@@ -173,9 +173,10 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     return 0;
 }
 
-void fs_push(int data, struct FS_Element** stack){
+void fs_push(int caller, int return_to_label, struct FS_Element** stack){
     struct FS_Element* element = (struct FS_Element*)malloc(sizeof(struct FS_Element)); 
-    element -> data = data; 
+    element -> caller = caller; 
+    element -> return_to_label = return_to_label;
     element -> next = *stack;  
     (*stack) = element;  
 }

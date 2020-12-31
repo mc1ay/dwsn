@@ -84,10 +84,10 @@ int mcu_function_main(struct Node* nodes,
                      int group_max,
                      int debug) {
     if (id % 2 == 0) {          // send half to function 1 and half to function 2
-        mcu_call(nodes, id, 0, 1);
+        mcu_call(nodes, id, 0, 0, 1);
     }
     else {
-        mcu_call(nodes, id, 0, 2);
+        mcu_call(nodes, id, 0, 1, 2);
     }
     return 0;
 }
@@ -122,7 +122,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
                 nodes[id].transmit_active = 0;
     }
     else {                           // look for clear channel
-        mcu_call(nodes, id, 2, 3);
+        mcu_call(nodes, id, 2, 0, 3);
     }
     return 0;
 }
@@ -146,7 +146,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
         }
     }
     nodes[id].transmit_active = 1;
-    mcu_return(nodes, id, 0);
+    mcu_return(nodes, id, 0, 3);
     return 0;
 }
 
@@ -157,12 +157,12 @@ int mcu_function_check_channel_busy(struct Node* nodes,
     for (int i = 0; i < node_count; i++) {
         if (i != id) {                  // don't check own id
             if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
-                mcu_return(nodes, id, 1);
+                mcu_return(nodes, id, 1, 4);
                 return 0;
             }
         }
     }
-    mcu_return(nodes, id, 0);
+    mcu_return(nodes, id, 0, 4);
     return 0;    
 }
 
@@ -181,18 +181,18 @@ int mcu_update_busy_time(struct Node* nodes,
     return 0;
 }
 
-int mcu_call(struct Node* nodes, int id, int caller, int function_number) {
-    fs_push(caller, &nodes[id].function_stack);
+int mcu_call(struct Node* nodes, int id, int caller, int return_to_label, int function_number) {
+    fs_push(caller, return_to_label, &nodes[id].function_stack);
     nodes[id].busy_remaining = -1;
     nodes[id].current_function = function_number;
     return 0;
 }
 
-int mcu_return(struct Node* nodes, int id, int return_value) {
-    nodes[id].current_function = nodes[id].function_stack->data; 
+int mcu_return(struct Node* nodes, int id, int return_value, int function_number) {
+    nodes[id].current_function = nodes[id].function_stack->caller; 
+    rs_push(function_number, nodes[id].function_stack->return_to_label, &nodes[id].return_stack);
     fs_pop(&nodes[id].function_stack);
     nodes[id].return_value = return_value;
     nodes[id].busy_remaining = -1;
-
     return 0;
 }

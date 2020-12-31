@@ -18,7 +18,8 @@
 
 // Function stack element for mcu function emulation
 struct FS_Element{ 
-    int data;                                           
+    int caller;
+    int return_to_label;                                           
     struct FS_Element* next; 
 };
 
@@ -59,7 +60,7 @@ int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);
 int update_signal(struct Node*, int, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
-void fs_push(int, struct FS_Element**);
+void fs_push(int, int, struct FS_Element**);
 void fs_pop(struct FS_Element**);
 void rs_push(int, int, struct RS_Element**);
 void rs_pop(struct RS_Element**);
