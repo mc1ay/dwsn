@@ -35,7 +35,8 @@ int update_mcu(struct Node* nodes,
  * 2: broadcast_lfg
  * 3: find_clear_channel
  * 4: check_channel_busy
- *
+ * 5: transmit_message_begin
+ * 6: transmit_message_complete
 **/
 int mcu_run_function(struct Node* nodes,
                      int node_count,
@@ -43,7 +44,7 @@ int mcu_run_function(struct Node* nodes,
                      double time_resolution,
                      int group_max,
                      int debug) {
-    double busy_time = 0.0;
+    double busy_time = 0.00;
 
     mcu_update_busy_time(nodes, id, time_resolution, debug);
 
@@ -63,7 +64,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 2:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 2.0;        // broadcast LFG for 2.0 seconds
+                    busy_time = 0.00;        
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
@@ -86,6 +87,24 @@ int mcu_run_function(struct Node* nodes,
                 }
                 else {            
                     mcu_function_check_channel_busy(nodes, node_count, id, debug);
+                }
+                break;
+            case 5:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_transmit_message_begin(nodes, node_count, id, debug);
+                }
+                break;
+            case 6:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 2.00;       // broadcast LFG for 2.0 seconds
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_transmit_message_complete(nodes, node_count, id, debug);
                 }
                 break;
             default:
@@ -164,12 +183,18 @@ int mcu_function_scan_lfg(struct Node* nodes,
  * Function Number:             2
  * Function Name:               broadcast_lfg
  * Function Description:        Broadcasts LFG message 
- * Function Busy times:         2.0 seconds for broadcast + 50 ms/channel scanning
- * Function Return Labels:      1
+ * Function Busy times:         0
+ * Function Return Labels:      2
  
  * Return Label 0 returns from: 3 (find_clear_channel)
  * Return Lable 0 reason:       Get return value of first available channel for
                                 broadcasting (if any)
+
+ * Return Label 1 returns from: 5 (transmit_message_begin)
+ * Return Lable 1 reason:       Check for successful transmission of LFG message
+
+ * Return Label 2 returns from: 6 (transmit_message_complete)
+ * Return Lable 2 reason:       Turn off transmit
 
  * Function Returns:            0 - no clear channels
  *                              channel - sent LFG on <channel>
@@ -180,11 +205,37 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
                                int debug) {
     int own_function_number = 2;
                                 
-    if (nodes[id].transmit_active) { 
-                nodes[id].busy_remaining = 0;
-                nodes[id].transmit_active = 0;
+    if (nodes[id].return_stack->returning_from == 3) {
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value > 0) {
+            // If clear channel was found, broadcast LFG on it
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG");
+            mcu_call(nodes, id, own_function_number, 1, 5);
+            return 0;
+        }
+        else {
+            // No clear channel was found, notify caller
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;
+        }
     }
-    else {                           // look for clear channel
+    else if (nodes[id].return_stack->returning_from == 5) {
+        // Returning from transmit_message_begin
+        // No error checking for now
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 2, 6);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 6) {
+        // Returning from transmit_message_complete
+        // No error checking for now, just return channel number
+        rs_pop(&nodes[id].return_stack);
+        mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+        return 0;
+    }
+    else {  
+        // Not returning from a call (first entry)
         mcu_call(nodes, id, own_function_number, 0, 3);
     }
     return 0;
@@ -267,6 +318,50 @@ int mcu_function_check_channel_busy(struct Node* nodes,
         }
     }
     mcu_return(nodes, id, own_function_number, 0);
+    return 0;    
+}
+
+/**
+ * Function Number:             5
+ * Function Name:               transmit_message_begin
+ * Function Description:        Transmits message specified in node.send_packet
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - transmit error
+ *                              1 - transmit successful
+**/
+int mcu_function_transmit_message_begin(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 5;
+    
+    nodes[id].transmit_active = 1;
+
+    mcu_return(nodes, id, own_function_number, 1);
+    return 0;    
+}
+
+/**
+ * Function Number:             6
+ * Function Name:               transmit_message_complete
+ * Function Description:        Turns off transmit after specified duration
+ * Function Busy time:          2.0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - transmit error
+ *                              1 - transmit successful
+**/
+int mcu_function_transmit_message_complete(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 6;
+    
+    nodes[id].transmit_active = 0;
+
+    mcu_return(nodes, id, own_function_number, 1);
     return 0;    
 }
 

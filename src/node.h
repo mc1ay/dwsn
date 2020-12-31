@@ -51,7 +51,7 @@ struct Node {
     int* group_list;
     struct FS_Element* function_stack;
     struct RS_Element* return_stack;
-    char* send_packet[256];
+    char send_packet[256];
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int, int); 

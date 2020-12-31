@@ -22,5 +22,7 @@ int mcu_function_scan_lfg(struct Node*, int, int, int, int);
 int mcu_function_broadcast_lfg(struct Node*, int, int, int);
 int mcu_function_find_clear_channel(struct Node*, int, int, int);
 int mcu_function_check_channel_busy(struct Node*, int, int, int);
+int mcu_function_transmit_message_begin(struct Node*, int, int, int);
+int mcu_function_transmit_message_complete(struct Node*, int, int, int);
 
 #endif
