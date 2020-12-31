@@ -117,11 +117,13 @@ int mcu_function_main(struct Node* nodes,
                      int id,
                      int group_max,
                      int debug) {
+    int own_function_number = 0;
+
     if (id % 2 == 0) {          // send half to function 1 and half to function 2
-        mcu_call(nodes, id, 0, 0, 1);
+        mcu_call(nodes, id, own_function_number, 0, 1);
     }
     else {
-        mcu_call(nodes, id, 0, 1, 2);
+        mcu_call(nodes, id, own_function_number, 1, 2);
     }
     return 0;
 }
@@ -141,18 +143,19 @@ int mcu_function_scan_lfg(struct Node* nodes,
                           int id,
                           int group_max,
                           int debug) {
+    int own_function_number = 1;
+
     for (int i = 0; i < node_count; i++) {
         if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
             update_signal(nodes, id, i, debug);
         }
     }
-    if (nodes[id].active_channel < 64) {       // go to next channel if less than max_channels (using 64 for now)
+    if (nodes[id].active_channel < 64) {        // go to next channel if less than max_channels (using 64 for now)
         nodes[id].active_channel++;
     }
-    else {                           // for now, if done scanning, reset node
-        nodes[id].busy_remaining = -1;    
-        nodes[id].current_function = 0;
+    else {                                      // if done scanning, return to main
         nodes[id].active_channel = 0;
+        mcu_return(nodes, id, own_function_number, 0);
     }
     return 0;
 }
@@ -175,12 +178,14 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
                                int id,
                                int group_max,
                                int debug) {
+    int own_function_number = 2;
+                                
     if (nodes[id].transmit_active) { 
                 nodes[id].busy_remaining = 0;
                 nodes[id].transmit_active = 0;
     }
     else {                           // look for clear channel
-        mcu_call(nodes, id, 2, 0, 3);
+        mcu_call(nodes, id, own_function_number, 0, 3);
     }
     return 0;
 }
@@ -203,6 +208,8 @@ int mcu_function_find_clear_channel(struct Node* nodes,
                                     int node_count,
                                     int id,
                                     int debug) {
+    int own_function_number = 3;
+
     for (int i = 0; i < node_count; i++) {
         if (i != id) {                  // don't check own id
             if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
@@ -218,7 +225,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
         }
     }
     nodes[id].transmit_active = 1;
-    mcu_return(nodes, id, 0, 3);
+    mcu_return(nodes, id, own_function_number, 0);
     return 0;
 }
 
@@ -237,15 +244,17 @@ int mcu_function_check_channel_busy(struct Node* nodes,
                                     int node_count,
                                     int id,
                                     int debug) {
+    int own_function_number = 4;
+    
     for (int i = 0; i < node_count; i++) {
         if (i != id) {                  // don't check own id
             if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
-                mcu_return(nodes, id, 1, 4);
+                mcu_return(nodes, id, own_function_number, 1);
                 return 0;
             }
         }
     }
-    mcu_return(nodes, id, 0, 4);
+    mcu_return(nodes, id, own_function_number, 0);
     return 0;    
 }
 
@@ -272,7 +281,7 @@ int mcu_call(struct Node* nodes, int id, int caller, int return_to_label, int fu
     return 0;
 }
 
-int mcu_return(struct Node* nodes, int id, int return_value, int function_number) {
+int mcu_return(struct Node* nodes, int id, int function_number, int return_value) {
     nodes[id].current_function = nodes[id].function_stack->caller; 
     rs_push(function_number, nodes[id].function_stack->return_to_label, return_value, &nodes[id].return_stack);
     fs_pop(&nodes[id].function_stack);
