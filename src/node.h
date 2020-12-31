@@ -27,6 +27,7 @@ struct FS_Element{
 struct RS_Element{
     int returning_from;
     int return_to_label;
+    int return_value;
     struct RS_Element* next;
 };
 
@@ -50,7 +51,6 @@ struct Node {
     int* group_list;
     struct FS_Element* function_stack;
     struct RS_Element* return_stack;
-    int return_value;
     char* send_packet[256];
 };
 
@@ -62,7 +62,7 @@ int update_signal(struct Node*, int, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
 void fs_push(int, int, struct FS_Element**);
 void fs_pop(struct FS_Element**);
-void rs_push(int, int, struct RS_Element**);
+void rs_push(int, int, int, struct RS_Element**);
 void rs_pop(struct RS_Element**);
 
 #endif

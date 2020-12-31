@@ -192,10 +192,11 @@ void fs_pop(struct FS_Element** stack){
     }
 }
 
-void rs_push(int returning_from, int return_to_label, struct RS_Element** stack){
+void rs_push(int returning_from, int return_to_label, int return_value, struct RS_Element** stack){
     struct RS_Element* element = (struct RS_Element*)malloc(sizeof(struct RS_Element)); 
     element -> returning_from = returning_from; 
     element -> return_to_label = return_to_label;
+    element -> return_value = return_value;
     element -> next = *stack;  
     (*stack) = element;  
 }

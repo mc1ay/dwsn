@@ -274,9 +274,8 @@ int mcu_call(struct Node* nodes, int id, int caller, int return_to_label, int fu
 
 int mcu_return(struct Node* nodes, int id, int return_value, int function_number) {
     nodes[id].current_function = nodes[id].function_stack->caller; 
-    rs_push(function_number, nodes[id].function_stack->return_to_label, &nodes[id].return_stack);
+    rs_push(function_number, nodes[id].function_stack->return_to_label, return_value, &nodes[id].return_stack);
     fs_pop(&nodes[id].function_stack);
-    nodes[id].return_value = return_value;
     nodes[id].busy_remaining = -1;
     return 0;
 }
