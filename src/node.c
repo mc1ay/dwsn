@@ -47,7 +47,10 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
         nodes[i].group_list = malloc(sizeof(int) * group_max);
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
-        //nodes[i].function_stack->caller = -1;
+        nodes[i].return_stack = malloc(sizeof(struct RS_Element));
+        nodes[i].function_stack->caller = -1;
+        nodes[i].return_stack->returning_from = -1;
+
 
         // Set all received signals to 0 initially
         for (int j = 0; j < node_count; j++) {

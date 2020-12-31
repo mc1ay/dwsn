@@ -72,7 +72,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 3:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.05;       // assuming 50ms listen time per channel
+                    busy_time = 0.00;       
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
@@ -195,7 +195,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
  * Function Name:               find_clear_channel
  * Function Description:        Listens for any node transmitting and finds first
                                 available free channel
- * Function Busy times:         50ms per channel scanned
+ * Function Busy time:          0
  * Function Return Labels:      1
  
  * Return Label 0 returns from: 4 (check_channel_busy)
@@ -210,22 +210,34 @@ int mcu_function_find_clear_channel(struct Node* nodes,
                                     int debug) {
     int own_function_number = 3;
 
-    for (int i = 0; i < node_count; i++) {
-        if (i != id) {                  // don't check own id
-            if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
-                if (nodes[id].active_channel < 64) {
-                    nodes[id].active_channel++;
-                    return 0;
-                }
-                else {
-                    nodes[id].active_channel = 0;
-                    return 0;
-                }
+    // check for return
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == 1) {
+            // Channel was busy, go to next, unless at last channel
+            if (nodes[id].active_channel == 64) {
+                nodes[id].active_channel = 0;
+                mcu_return(nodes, id, own_function_number, 0);
+                return 0;
+            }
+            else {
+                nodes[id].active_channel++;
+                mcu_call(nodes, id, own_function_number, 0, 4);
             }
         }
+        else {
+            // Channel was free, return to caller
+            mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+            return 0;
+        }
     }
-    nodes[id].transmit_active = 1;
-    mcu_return(nodes, id, own_function_number, 0);
+    else {
+        // Not returning from a call (first entry)
+        nodes[id].active_channel = 0;
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
     return 0;
 }
 
@@ -234,7 +246,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
  * Function Name:               check_channel_busy
  * Function Description:        Checks to see if there are any transmissions on 
                                 selected channel
- * Function Busy times:         50ms 
+ * Function Busy time:          50ms 
  * Function Return Labels:      0
 
  * Function Returns:            0 - channel free
