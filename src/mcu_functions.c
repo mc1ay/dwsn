@@ -48,7 +48,7 @@ int mcu_function_main(struct Node* nodes,
  * Function Busy times:         50 ms per channel scanned
  * Function Return Labels:      0
  *
- * Function Returns:            0 - no LFG found
+ * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
 **/
 int mcu_function_scan_lfg(struct Node* nodes,
@@ -74,7 +74,7 @@ int mcu_function_scan_lfg(struct Node* nodes,
             // Didn't hear anything, go to next channel
             if (nodes[id].active_channel == 64) {
                 nodes[id].active_channel = 0;
-                mcu_return(nodes, id, own_function_number, 0);
+                mcu_return(nodes, id, own_function_number, -1);
                 return 0;
             }
             else {
@@ -109,7 +109,7 @@ int mcu_function_scan_lfg(struct Node* nodes,
  * Return Label 2 returns from: 6 (transmit_message_complete)
  * Return Lable 2 reason:       Turn off transmit
 
- * Function Returns:            0 - no clear channels
+ * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
 int mcu_function_broadcast_lfg(struct Node* nodes,
@@ -121,7 +121,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
     if (nodes[id].return_stack->returning_from == 3) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
-        if (return_value > 0) {
+        if (return_value >= 0) {
             // If clear channel was found, broadcast LFG on it
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG");
             mcu_call(nodes, id, own_function_number, 1, 5);
@@ -129,7 +129,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
         }
         else {
             // No clear channel was found, notify caller
-            mcu_return(nodes, id, own_function_number, 0);
+            mcu_return(nodes, id, own_function_number, -1);
             return 0;
         }
     }
@@ -165,7 +165,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
  * Return Label 0 returns from: 4 (check_channel_busy)
  * Return Lable 0 reason:       See if there is any activity on selected channel
 
- * Function Returns:            0 - no clear channels
+ * Function Returns:            -1 - no clear channels
  *                              channel - first available free channel
 **/
 int mcu_function_find_clear_channel(struct Node* nodes,
@@ -183,7 +183,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
             // Channel was busy, go to next, unless at last channel
             if (nodes[id].active_channel == 64) {
                 nodes[id].active_channel = 0;
-                mcu_return(nodes, id, own_function_number, 0);
+                mcu_return(nodes, id, own_function_number, -1);
                 return 0;
             }
             else {
@@ -250,9 +250,7 @@ int mcu_function_transmit_message_begin(struct Node* nodes,
                                            int id,
                                            int debug) {
     int own_function_number = 5;
-    
     nodes[id].transmit_active = 1;
-
     mcu_return(nodes, id, own_function_number, 1);
     return 0;    
 }
