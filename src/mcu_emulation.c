@@ -164,17 +164,36 @@ int mcu_function_scan_lfg(struct Node* nodes,
                           int debug) {
     int own_function_number = 1;
 
-    for (int i = 0; i < node_count; i++) {
-        if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
-            update_signal(nodes, id, i, debug);
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == 1) {
+            // Activity on channel, check for LFG
+            for (int i = 0; i < node_count; i++) {
+                if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
+                    update_signal(nodes, id, i, debug);
+                }
+            }
+        }
+        else {
+            // Didn't hear anything, go to next channel
+            if (nodes[id].active_channel == 64) {
+                nodes[id].active_channel = 0;
+                mcu_return(nodes, id, own_function_number, 0);
+                return 0;
+            }
+            else {
+                nodes[id].active_channel++;
+                mcu_call(nodes, id, own_function_number, 0, 4);
+                return 0;
+            }
         }
     }
-    if (nodes[id].active_channel < 64) {        // go to next channel if less than max_channels (using 64 for now)
-        nodes[id].active_channel++;
-    }
-    else {                                      // if done scanning, return to main
+    else {
+        // Not returning from a call (first entry)
         nodes[id].active_channel = 0;
-        mcu_return(nodes, id, own_function_number, 0);
+        mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;
 }
@@ -276,6 +295,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
             else {
                 nodes[id].active_channel++;
                 mcu_call(nodes, id, own_function_number, 0, 4);
+                return 0;
             }
         }
         else {
