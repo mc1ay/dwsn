@@ -32,8 +32,26 @@ int mcu_function_main(struct Node* nodes,
                      int debug) {
     int own_function_number = 0;
 
-    if (id % 2 == 0) {          // send half to function 1 and half to function 2
-        mcu_call(nodes, id, own_function_number, 0, 1);
+    // Assign initial channels (assuming 5 groups)
+    if (id % 5 == 0) {          
+        nodes[id].active_channel = 0;
+    }
+    else if (id % 5 == 1) {
+        nodes[id].active_channel = 3;
+    }
+    else if (id % 5 == 2) {
+        nodes[id].active_channel = 6;
+    }
+    else if (id % 5 == 3) {
+        nodes[id].active_channel = 9;
+    }
+    else if (id % 5 == 4) {
+        nodes[id].active_channel = 12;
+    }
+    
+    // Broadcast from first five nodes, others listen
+    if (id < 5) {
+        mcu_call(nodes, id, own_function_number, 0, 1); 
     }
     else {
         mcu_call(nodes, id, own_function_number, 1, 2);
@@ -67,12 +85,13 @@ int mcu_function_scan_lfg(struct Node* nodes,
             for (int i = 0; i < node_count; i++) {
                 if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
                     update_signal(nodes, id, i, debug);
+                    // To-do: check for LFG
                 }
             }
         }
         else {
             // Didn't hear anything, go to next channel
-            if (nodes[id].active_channel == 64) {
+            if (nodes[id].active_channel == 16) {
                 nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, -1);
                 return 0;
@@ -181,7 +200,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
         rs_pop(&nodes[id].return_stack);
         if (return_value == 1) {
             // Channel was busy, go to next, unless at last channel
-            if (nodes[id].active_channel == 64) {
+            if (nodes[id].active_channel == 16) {
                 nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, -1);
                 return 0;
@@ -200,7 +219,6 @@ int mcu_function_find_clear_channel(struct Node* nodes,
     }
     else {
         // Not returning from a call (first entry)
-        nodes[id].active_channel = 0;
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;
