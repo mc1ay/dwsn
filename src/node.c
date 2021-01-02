@@ -63,7 +63,7 @@ int initialize_nodes(struct Node* nodes,
         }
 
         if (output) {
-            sprintf(file_path, "%s/%d%s", output_dir, i, ".txt");
+            sprintf(file_path, "%s/node-%d%s", output_dir, i, ".txt");
             if (debug) {
                 printf("Creating output file \"%s\"\n", file_path);
             }
@@ -153,8 +153,8 @@ int update_signal(struct Node* nodes, int id, int target, int debug) {
 }
 
 int write_node_data(struct Node* nodes, int node_count, int id, double current_time, FILE *fp) {
-    char buffer[200];
-    sprintf(buffer, "%f %i %i %f %f %f ", current_time, 
+    char buffer[100 + node_count * 15];
+    sprintf(buffer, "%f\t%i\t%i\t%f\t%f\t%f ", current_time, 
                                           nodes[id].active_channel,
                                           nodes[id].current_function, 
                                           nodes[id].x_pos, 
@@ -163,7 +163,7 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
     fputs(buffer, fp);
     for (int i = 0; i < node_count; i++) {
         if (i < node_count - 1) {
-            sprintf(buffer, "%f ", nodes[id].received_signals[i]);
+            sprintf(buffer, "%f\t", nodes[id].received_signals[i]);
         }
         else {
             sprintf(buffer, "%f", nodes[id].received_signals[i]);
