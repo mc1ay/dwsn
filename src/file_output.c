@@ -98,18 +98,28 @@ int check_write_interval(struct Node* nodes,
         transmit_history_file = fopen (file_path, "a");
         // Build line of output for this timeslice
         char buffer[sizeof(channels) * 2 + 20];
+        int transmit_count = 0;
         for (int i = 0; i < channels; i++) {
+            // Do this for each channel
             for (int j = 0; j < node_count; j++) {
+                // Check each node to see if it is transmitting on channel
                 if (nodes[j].active_channel == i && nodes[j].transmit_active == 1) {
-                    channel_active[i * 2] = 88;
+                    transmit_count++;
                 }
-                else {
-                    channel_active[i * 2] = 46;
-                }
-                if (i < channels - 1) {
-                    // Remove trailing tab or else we get garbage output
-                    channel_active[i * 2 + 1] = 9;
-                }
+            }
+            if (transmit_count > 0) {
+                // If any nodes were transmitting on this channel output an "X"
+                // into history file and reset counter
+                channel_active[i * 2] = 88;
+                transmit_count = 0;
+            }
+            else {
+                // If no signals detected, output a "."
+                channel_active[i * 2] = 46;
+            } 
+            if (i < channels - 1) {
+                // Remove trailing tab or else we get garbage output
+                channel_active[i * 2 + 1] = 9;
             }
         }
         // Write output line to file and close

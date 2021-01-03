@@ -270,6 +270,7 @@ int mcu_function_transmit_message_begin(struct Node* nodes,
                                            int node_count,
                                            int id,
                                            int debug) {
+    printf("Node %d started transmit on channel %d\n", id, nodes[id].active_channel);
     int own_function_number = 5;
     nodes[id].transmit_active = 1;
     mcu_return(nodes, id, own_function_number, 1);
