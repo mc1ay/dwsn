@@ -270,7 +270,6 @@ int mcu_function_transmit_message_begin(struct Node* nodes,
                                            int node_count,
                                            int id,
                                            int debug) {
-    printf("Node %d started transmit on channel %d\n", id, nodes[id].active_channel);
     int own_function_number = 5;
     nodes[id].transmit_active = 1;
     mcu_return(nodes, id, own_function_number, 1);
@@ -296,5 +295,24 @@ int mcu_function_transmit_message_complete(struct Node* nodes,
     nodes[id].transmit_active = 0;
 
     mcu_return(nodes, id, own_function_number, 1);
+    return 0;    
+}
+
+/**
+ * Function Number:             7
+ * Function Name:               sleep
+ * Function Description:        MCU does nothing (add power reduction later)
+ * Function Busy time:          1.0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_sleep(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 7;
+    
+    mcu_return(nodes, id, own_function_number, 0);
     return 0;    
 }

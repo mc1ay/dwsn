@@ -38,6 +38,7 @@ int update_mcu(struct Node* nodes,
  * 4: check_channel_busy
  * 5: transmit_message_begin
  * 6: transmit_message_complete
+ * 7: sleep
 **/
 int mcu_run_function(struct Node* nodes,
                      int node_count,
@@ -106,6 +107,15 @@ int mcu_run_function(struct Node* nodes,
                 }
                 else {            
                     mcu_function_transmit_message_complete(nodes, node_count, id, debug);
+                }
+                break;
+            case 7:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 1.00;       // sleep for 1.0 second
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_sleep(nodes, node_count, id, debug);
                 }
                 break;
             default:
