@@ -146,28 +146,7 @@ int main(int argc, char **argv) {
         // Make log directory if output option is turned on
         create_log_dir(output_dir, verbose);
         // create transmit_history file and header
-        char file_path[100];
-        sprintf(file_path, "%s/transmit_history.txt", output_dir);
-        FILE *transmit_history_file;
-        transmit_history_file = fopen (file_path, "a");
-        // Build line of output for this timeslice
-        char buffer[10];
-        sprintf(buffer, "Time\t\t");
-        fputs(buffer, transmit_history_file);
-        for (int i = 0; i < channels; i++) {
-            if (i < channels -1) {
-                sprintf(buffer, "%d\t", i);
-                fputs(buffer, transmit_history_file);
-
-            }
-            else {
-                sprintf(buffer, "%d", i);
-                fputs(buffer, transmit_history_file);
-            }
-        }
-        sprintf(buffer, "\n");
-        fputs(buffer, transmit_history_file);
-        fclose(transmit_history_file);
+        create_transmit_history_file(output_dir, channels);
     }
 
     // Get nodes ready

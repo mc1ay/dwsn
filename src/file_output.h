@@ -16,5 +16,6 @@
 
 int check_write_interval(struct Node*, int, int, double*, double, double, char*, int);
 int create_log_dir(char*, int);
+int create_transmit_history_file(char*, int);
 
 #endif

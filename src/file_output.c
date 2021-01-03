@@ -46,6 +46,33 @@ int create_log_dir(char* output_dir, int verbose) {
     return 0; 
 }
 
+int create_transmit_history_file(char* output_dir, int channels) {
+    char file_path[100];
+    sprintf(file_path, "%s/transmit_history.txt", output_dir);
+    FILE *transmit_history_file;
+    transmit_history_file = fopen (file_path, "a");
+    // Build line of output for this timeslice
+    char buffer[10];
+    sprintf(buffer, "Time\t\t");
+    fputs(buffer, transmit_history_file);
+    for (int i = 0; i < channels; i++) {
+        if (i < channels -1) {
+            sprintf(buffer, "%d\t", i);
+            fputs(buffer, transmit_history_file);
+
+        }
+        else {
+            sprintf(buffer, "%d", i);
+            fputs(buffer, transmit_history_file);
+        }
+    }
+    sprintf(buffer, "\n");
+    fputs(buffer, transmit_history_file);
+    fclose(transmit_history_file);
+
+    return 0;
+}
+
 int check_write_interval(struct Node* nodes,
                          int node_count,
                          int channels,
