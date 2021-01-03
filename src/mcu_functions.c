@@ -63,8 +63,11 @@ int mcu_function_main(struct Node* nodes,
  * Function Number:             1
  * Function Name:               scan_lfg
  * Function Description:        Scan all available channel and look for a LFG broadcast
- * Function Busy times:         50 ms per channel scanned
- * Function Return Labels:      0
+ * Function Busy times:         0
+ * Function Return Labels:      1
+ *
+ * Return Label 0 returns from: 4 (check_channel_busy)
+ * Return Lable 0 reason:       See if there is any activity on selected channel
  *
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
