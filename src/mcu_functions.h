@@ -6,6 +6,7 @@
  * @date    1/1/2021
 **/
 
+#include <string.h>
 #include "node.h"
 #include "mcu_emulation.h"
 
@@ -19,6 +20,7 @@ int mcu_function_find_clear_channel(struct Node*, int, int, int);
 int mcu_function_check_channel_busy(struct Node*, int, int, int);
 int mcu_function_transmit_message_begin(struct Node*, int, int, int);
 int mcu_function_transmit_message_complete(struct Node*, int, int, int);
+int mcu_function_receive(struct Node*, int, int, int);
 int mcu_function_sleep(struct Node*, int, int, int);
 
 #endif

@@ -16,7 +16,7 @@
  * Function Return Labels:      2
  
  * Return Label 0 returns from: 1 (scan_lfg)
- * Return Lable 0 reason:       Check to see if scan function finds a looking for 
+ * Return Label 0 reason:       Check to see if scan function finds a looking for 
                                 group broadcast message
  
  * Return Label 1 returns from: 2 (broadcast_lfg)
@@ -64,10 +64,12 @@ int mcu_function_main(struct Node* nodes,
  * Function Name:               scan_lfg
  * Function Description:        Scan all available channel and look for a LFG broadcast
  * Function Busy times:         0
- * Function Return Labels:      1
+ * Function Return Labels:      2
  *
  * Return Label 0 returns from: 4 (check_channel_busy)
- * Return Lable 0 reason:       See if there is any activity on selected channel
+ * Return Label 0 reason:       See if there is any activity on selected channel
+ * Return Label 1 returns from: 7 (receive)
+ * Return Label 1 reason:       Get incoming packet
  *
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
@@ -79,24 +81,52 @@ int mcu_function_scan_lfg(struct Node* nodes,
                           int debug) {
     int own_function_number = 1;
 
-    if (nodes[id].return_stack->returning_from == 4) {
+    if (nodes[id].return_stack->returning_from == 7) {
+        // Returning from receive function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value < 0) {
+            // collision detected try again 
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+        else {
+            // Check for LFG
+            if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
+                // Found LFG packet, return to main
+                mcu_return(nodes, id, own_function_number, return_value);
+                return 0;
+            }
+            else {
+                // Node is transmitting something other than LFG, keep scanning
+                if (nodes[id].active_channel == 16) {
+                    nodes[id].active_channel = 0;
+                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    return 0;
+                }
+                else {
+                    nodes[id].active_channel++;
+                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    return 0;
+                }
+            }
+        }
+
+    }
+    else if (nodes[id].return_stack->returning_from == 4) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         if (return_value == 1) {
-            // Activity on channel, check for LFG
-            for (int i = 0; i < node_count; i++) {
-                if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
-                    update_signal(nodes, id, i, debug);
-                    // To-do: check for LFG
-                }
-            }
+            // Activity on channel, get packet
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
         }
         else {
             // Didn't hear anything, go to next channel
             if (nodes[id].active_channel == 16) {
                 nodes[id].active_channel = 0;
-                mcu_return(nodes, id, own_function_number, -1);
+                mcu_call(nodes, id, own_function_number, 0, 4);
                 return 0;
             }
             else {
@@ -122,14 +152,14 @@ int mcu_function_scan_lfg(struct Node* nodes,
  * Function Return Labels:      2
  
  * Return Label 0 returns from: 3 (find_clear_channel)
- * Return Lable 0 reason:       Get return value of first available channel for
+ * Return Label 0 reason:       Get return value of first available channel for
                                 broadcasting (if any)
 
  * Return Label 1 returns from: 5 (transmit_message_begin)
- * Return Lable 1 reason:       Check for successful transmission of LFG message
+ * Return Label 1 reason:       Check for successful transmission of LFG message
 
  * Return Label 2 returns from: 6 (transmit_message_complete)
- * Return Lable 2 reason:       Turn off transmit
+ * Return Label 2 reason:       Turn off transmit
 
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
@@ -185,7 +215,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
  * Function Return Labels:      1
  
  * Return Label 0 returns from: 4 (check_channel_busy)
- * Return Lable 0 reason:       See if there is any activity on selected channel
+ * Return Label 0 reason:       See if there is any activity on selected channel
 
  * Function Returns:            -1 - no clear channels
  *                              channel - first available free channel
@@ -300,6 +330,40 @@ int mcu_function_transmit_message_complete(struct Node* nodes,
 
 /**
  * Function Number:             7
+ * Function Name:               receive
+ * Function Description:        MCU gets data from channel
+ * Function Busy time:          0   needs to be updated later to match transmit time
+ * Function Return Labels:      0
+
+ * Function Returns:           -1 - collision detected
+ *                             ID - received data from node <id>
+**/
+int mcu_function_receive(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 7;
+    int signals_detected = 0;
+    int transmitting_node = -1;
+
+    for (int i = 0; i < node_count; i++) {
+        if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
+            update_signal(nodes, id, i, debug);
+            signals_detected++;
+            transmitting_node = i;
+        }
+    }
+    if (signals_detected > 0) {
+        mcu_return(nodes, id, own_function_number, -1);
+        return 0;
+    }
+
+    mcu_return(nodes, id, own_function_number, transmitting_node);
+    return 0;    
+}
+
+/**
+ * Function Number:             8
  * Function Name:               sleep
  * Function Description:        MCU does nothing (add power reduction later)
  * Function Busy time:          1.0 
@@ -311,7 +375,7 @@ int mcu_function_sleep(struct Node* nodes,
                                            int node_count,
                                            int id,
                                            int debug) {
-    int own_function_number = 7;
+    int own_function_number = 8;
     
     mcu_return(nodes, id, own_function_number, 0);
     return 0;    
