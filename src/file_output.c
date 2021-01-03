@@ -12,9 +12,7 @@ int create_log_dir(char* output_dir, int verbose) {
     struct tm *timenow;
     time_t now = time(NULL);
     timenow = gmtime(&now);
-    printf("Before strftime: %s\n", output_dir);
     strftime(output_dir, sizeof(char) * 50, "output/run/%Y-%m-%d-%H-%M-%S", timenow);
-    printf("After strftime: %s\n", output_dir);
     if (verbose) {
         printf("Creating output directory \"%s\": ", output_dir);
     }
