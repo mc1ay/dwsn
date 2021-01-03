@@ -7,10 +7,14 @@
 **/
 
 #include "node.h"
+#include <stdlib.h>
+#include <time.h>
+#include <sys/stat.h>
 
 #ifndef fileoutput_H
 #define fileoutput_H
 
 int check_write_interval(struct Node*, int, int, double*, double, double, char*, int);
+int create_log_dir(char*, int);
 
 #endif

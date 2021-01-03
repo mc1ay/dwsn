@@ -8,7 +8,6 @@
 
 #include <ctype.h>
 #include <math.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -66,7 +65,8 @@ int main(int argc, char **argv) {
     int verbose = 1;
     int output = 0;
     int channels = 16;
-    char output_dir[50];
+    char* output_dir = malloc(sizeof(char) * 50);
+    
 
     // get command line switches
     int c;
@@ -142,41 +142,9 @@ int main(int argc, char **argv) {
         printf("Default power output: %f\n", default_power_output);
     }
     
-    // Make log directory is output option is turned on
     if (output) {
-        struct tm *timenow;
-        time_t now = time(NULL);
-        timenow = gmtime(&now);
-        strftime(output_dir, sizeof(output_dir), "output/run/%Y-%m-%d-%H-%M-%S", timenow);
-        if (verbose) {
-            printf("Creating output directory \"%s\": ", output_dir);
-        }
-
-        // Make path for timestamped directory if it doesn't already exist
-        struct stat st = {0};
-        if (stat("output", &st) == -1) {
-           mkdir("output", 0777);
-        }
-        if (stat("output/run", &st) == -1) {
-           mkdir("output/run", 0777);
-        }
-
-        // Make directory just for this run
-        ret = mkdir(output_dir,0777); 
-  
-        // check if directory is created or not 
-        if (!ret) {
-            if (verbose) {
-                printf("OK\n"); 
-            }
-        }
-        else { 
-            if (verbose) {
-                printf("Unable to create directory, exiting\n"); 
-            }
-            exit(1); 
-        } 
-
+        // Make log directory if output option is turned on
+        create_log_dir(output_dir, verbose);
         // create transmit_history file and header
         char file_path[100];
         sprintf(file_path, "%s/transmit_history.txt", output_dir);

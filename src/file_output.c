@@ -8,6 +8,44 @@
 
 #include "file_output.h"
 
+int create_log_dir(char* output_dir, int verbose) {
+    struct tm *timenow;
+    time_t now = time(NULL);
+    timenow = gmtime(&now);
+    printf("Before strftime: %s\n", output_dir);
+    strftime(output_dir, sizeof(char) * 50, "output/run/%Y-%m-%d-%H-%M-%S", timenow);
+    printf("After strftime: %s\n", output_dir);
+    if (verbose) {
+        printf("Creating output directory \"%s\": ", output_dir);
+    }
+
+    // Make path for timestamped directory if it doesn't already exist
+    struct stat st = {0};
+    if (stat("output", &st) == -1) {
+        mkdir("output", 0777);
+    }
+    if (stat("output/run", &st) == -1) {
+        mkdir("output/run", 0777);
+    }
+
+    // Make directory just for this run
+    int ret = mkdir(output_dir,0777); 
+
+    // check if directory is created or not 
+    if (!ret) {
+        if (verbose) {
+            printf("OK\n"); 
+        }
+    }
+    else { 
+        if (verbose) {
+            printf("Unable to create directory, exiting\n"); 
+        }
+        exit(1); 
+    }
+    return 0; 
+}
+
 int check_write_interval(struct Node* nodes,
                          int node_count,
                          int channels,
