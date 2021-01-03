@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include "node.h"
 #include "mcu_emulation.h"
+#include "file_output.h"
 
 int clock_tick(struct Node* nodes, 
                int node_count, 
@@ -30,51 +31,16 @@ int clock_tick(struct Node* nodes,
                int group_max,
                int channels) {
     *current_time += time_resolution; 
-    char file_path[100];
-    char channel_active[channels * 2 + 1];
 
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
     update_mcu(nodes, node_count, time_resolution, group_max, debug);
-
-    // Update output files if output option specified
     if (output) {
-        if (fmod(*current_time, write_interval) < time_resolution) {
-            for (int i = 0; i < node_count; i++) {
-                // output node specific info into one file per node
-                sprintf(file_path, "%s/node-%d%s", output_dir, i, ".txt");
-                FILE *node_data_file;
-                node_data_file  = fopen (file_path, "a");
-                write_node_data(nodes, node_count, i, *current_time, node_data_file);
-                fclose(node_data_file);
-            }
-            // Open transmit_history file for writing
-            sprintf(file_path, "%s/transmit_history.txt", output_dir);
-            FILE *transmit_history_file;
-            transmit_history_file = fopen (file_path, "a");
-            // Build line of output for this timeslice
-            char buffer[sizeof(channels) * 2 + 20];
-            for (int i = 0; i < channels; i++) {
-                for (int j = 0; j < node_count; j++) {
-                    if (nodes[j].active_channel == i && nodes[j].transmit_active == 1) {
-                        channel_active[i * 2] = 88;
-                    }
-                    else {
-                        channel_active[i * 2] = 46;
-                    }
-                    if (i < channels - 1) {
-                        // Remove trailing tab or else we get garbage output
-                        channel_active[i * 2 + 1] = 9;
-                    }
-                }
-            }
-            // Write output line to file and close
-            sprintf(buffer, "%f\t%s\n", *current_time, channel_active);
-            fputs(buffer, transmit_history_file);
-            fclose(transmit_history_file);
-        }
+        check_write_interval(nodes, node_count, channels, current_time, 
+                             time_resolution, write_interval, output_dir, debug);
     }
+
     return 0;
 }
 

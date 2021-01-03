@@ -1,6 +1,6 @@
-dwsn: main.o node.o mcu_emulation.o mcu_functions.o
-	cc -o dwsn -lm main.o node.o mcu_emulation.o mcu_functions.o
-	rm main.o node.o mcu_emulation.o mcu_functions.o
+dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o
+	cc -o dwsn -lm main.o node.o mcu_emulation.o mcu_functions.o file_output.o
+	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o
 main.o:
 	cc -Wall -g -c src/main.c
 node.o:
@@ -9,3 +9,5 @@ mcu_emulation.o:
 	cc -Wall -g -c src/mcu_emulation.c
 mcu_functions.o:
 	cc -Wall -g -c src/mcu_functions.c
+file_output.o:
+	cc -Wall -g -c src/file_output.c
