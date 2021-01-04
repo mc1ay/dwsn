@@ -23,6 +23,13 @@
  * Return Label 1 reason:       Check to see if LFG was successfully broadcast on
                                 an open channel
 
+ * Return Label 2 returns from: 7 (sleep)
+ * Return Label 2 reason:       Later this needs to try to join the group, for now
+                                just sleep
+
+ * Return Label 3 returns from: 7 (sleep)
+ * Return Label 3 reason:       Once in sleep function, keep repeating, for now                                                            
+
  * Function Returns:            nothing
 **/
 int mcu_function_main(struct Node* nodes,
@@ -32,29 +39,54 @@ int mcu_function_main(struct Node* nodes,
                      int debug) {
     int own_function_number = 0;
 
-    // Assign initial channels (assuming 5 groups)
-    if (id % 5 == 0) {          
-        nodes[id].active_channel = 0;
+    if (nodes[id].return_stack->returning_from == 7) {
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value < 0) {        
+            // something is wrong
+        }
+        else {
+            // have node try to join group later, for now just go to sleep
+            mcu_call(nodes, id, own_function_number, 2, 7);
+            return 0;
+        }
     }
-    else if (id % 5 == 1) {
-        nodes[id].active_channel = 3;
+
+    else if (nodes[id].return_stack->returning_from == 7) {
+        // for now anything that goes to sleep should stay asleep
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 3, 7);
+        return 0;
     }
-    else if (id % 5 == 2) {
-        nodes[id].active_channel = 6;
-    }
-    else if (id % 5 == 3) {
-        nodes[id].active_channel = 9;
-    }
-    else if (id % 5 == 4) {
-        nodes[id].active_channel = 12;
-    }
-    
-    // Broadcast from first five nodes, others listen
-    if (id < 5) {
-        mcu_call(nodes, id, own_function_number, 0, 1); 
-    }
+
     else {
-        mcu_call(nodes, id, own_function_number, 1, 2);
+        // First time entering main
+        // Assign initial channels (assuming 5 groups)
+        if (id % 5 == 0) {          
+            nodes[id].active_channel = 0;
+        }
+        else if (id % 5 == 1) {
+            nodes[id].active_channel = 3;
+        }
+        else if (id % 5 == 2) {
+            nodes[id].active_channel = 6;
+        }
+        else if (id % 5 == 3) {
+            nodes[id].active_channel = 9;
+        }
+        else if (id % 5 == 4) {
+            nodes[id].active_channel = 12;
+        }
+        
+        // Broadcast from first five nodes, others listen
+        if (id < 5) {
+            mcu_call(nodes, id, own_function_number, 0, 1);
+            return 0; 
+        }
+        else {
+            mcu_call(nodes, id, own_function_number, 1, 2);
+            return 0;
+        }    
     }
     return 0;
 }
