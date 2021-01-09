@@ -20,6 +20,7 @@ int initialize_nodes(struct Node* nodes,
                        int output,
                        char* output_dir,
                        int group_max,
+                       int channels,
                        int debug) {
     char file_path[100];
 
@@ -50,7 +51,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].return_stack = malloc(sizeof(struct RS_Element));
         nodes[i].function_stack->caller = -1;
         nodes[i].return_stack->returning_from = -1;
-
+        nodes[i].tmp_lfg_chans = malloc(sizeof(int) * channels);
 
         // Set all received signals to 0 initially
         for (int j = 0; j < node_count; j++) {

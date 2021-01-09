@@ -52,9 +52,11 @@ struct Node {
     struct FS_Element* function_stack;
     struct RS_Element* return_stack;
     char send_packet[256];
+    int* tmp_lfg_chans;
 };
 
-int initialize_nodes(struct Node*, int, double, double, double, double, double, double, int, char*, int, int); 
+int initialize_nodes(struct Node*, int, double, double, double, double, double,
+                                   double, int, char*, int, int, int); 
 int update_acceleration(struct Node*, int, double, double, int);
 int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);

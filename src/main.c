@@ -71,7 +71,6 @@ int main(int argc, char **argv) {
     int channels = 16;
     char* output_dir = malloc(sizeof(char) * 50);
     
-
     // get command line switches
     int c;
     while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:")) != -1)
@@ -131,7 +130,7 @@ int main(int argc, char **argv) {
     if (debug) {
         printf("Debug level: %d", debug);
     }
-    
+
     // Seed random number generator if seed isn't specified
     if (random_seed < 0) {
         srand(time(NULL)); 
@@ -166,7 +165,7 @@ int main(int argc, char **argv) {
     ret = initialize_nodes(nodes, node_count, terminal_velocity, 
                            start_x, start_y, start_z, gravity, 
                            default_power_output, output, output_dir, 
-                           group_max, debug);
+                           group_max, channels, debug);
     if (ret == 0) {
         if (verbose) {
             printf("Initialization OK\n");
