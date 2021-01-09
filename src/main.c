@@ -30,6 +30,10 @@ int clock_tick(struct Node* nodes,
                int group_max,
                int channels) {
     *current_time += time_resolution; 
+    
+    if (debug > 1) {
+        printf("Clock tick: %f\n", *current_time);
+    }
 
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
@@ -121,6 +125,11 @@ int main(int argc, char **argv) {
             }
         default:
             abort ();
+    }
+    
+    // Print message about debug level
+    if (debug) {
+        printf("Debug level: %d", debug);
     }
     
     // Seed random number generator if seed isn't specified
