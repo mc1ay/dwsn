@@ -110,11 +110,13 @@ int mcu_function_scan_lfg(struct Node* nodes,
                           int node_count,
                           int id,
                           int group_max,
+                          int channels,
                           int debug) {
     int own_function_number = 1;
 
     if (nodes[id].return_stack->returning_from == 7) {
         // Returning from receive function
+        // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         if (return_value < 0) {
@@ -125,22 +127,21 @@ int mcu_function_scan_lfg(struct Node* nodes,
         else {
             // Check for LFG
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
-                // Found LFG packet, return to main
+                // Found LFG packet, add to LFG tmp array
+                // Put sending node id into correct channel slot of array
+                nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
+            }
+            // Keep scanning if not at last channel
+            if (nodes[id].active_channel == 16) {
+            // If at last channel, return to main
+                nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, return_value);
                 return 0;
             }
             else {
-                // Node is transmitting something other than LFG, keep scanning
-                if (nodes[id].active_channel == 16) {
-                    nodes[id].active_channel = 0;
-                    mcu_call(nodes, id, own_function_number, 0, 4);
-                    return 0;
-                }
-                else {
-                    nodes[id].active_channel++;
-                    mcu_call(nodes, id, own_function_number, 0, 4);
-                    return 0;
-                }
+                nodes[id].active_channel++;
+                mcu_call(nodes, id, own_function_number, 0, 4);
+                return 0;
             }
         }
 
@@ -157,6 +158,8 @@ int mcu_function_scan_lfg(struct Node* nodes,
         else {
             // Didn't hear anything, go to next channel
             if (nodes[id].active_channel == 16) {
+                // If at last channel, return to main
+                // TODO!!!
                 nodes[id].active_channel = 0;
                 mcu_call(nodes, id, own_function_number, 0, 4);
                 return 0;
@@ -170,7 +173,13 @@ int mcu_function_scan_lfg(struct Node* nodes,
     }
     else {
         // Not returning from a call (first entry)
+        // Start at first channel
         nodes[id].active_channel = 0;
+        // Initialize LFG tmp array
+        for (int i = 0; i < channels; i++) {
+            nodes[id].tmp_lfg_chans[i] = 0;
+        }
+        // Check if first channel is busy
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;

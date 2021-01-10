@@ -38,7 +38,7 @@ int clock_tick(struct Node* nodes,
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
-    update_mcu(nodes, node_count, time_resolution, group_max, debug);
+    update_mcu(nodes, node_count, time_resolution, group_max, channels, debug);
     if (output) {
         check_write_interval(nodes, node_count, channels, current_time, 
                              time_resolution, write_interval, output_dir, debug);
