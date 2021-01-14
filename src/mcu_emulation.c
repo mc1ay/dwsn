@@ -56,11 +56,11 @@ int mcu_run_function(struct Node* nodes,
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
-                mcu_function_main(nodes, node_count, id, group_max, debug);
+                mcu_function_main(nodes, node_count, id, group_max, channels, debug);
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.05;       // assuming 50 ms listen time per channel, update later
+                    busy_time = 0.00;       // assuming 50 ms listen time per channel, update later
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {

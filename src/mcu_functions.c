@@ -14,14 +14,14 @@
  * Function Description:        Main Loop of microcontroller emulation routine
  * Function Busy times:         None
  * Function Return Labels:      2
- 
- * Return Label 0 returns from: 1 (scan_lfg)
- * Return Label 0 reason:       Check to see if scan function finds a looking for 
-                                group broadcast message
- 
- * Return Label 1 returns from: 2 (broadcast_lfg)
- * Return Label 1 reason:       Check to see if LFG was successfully broadcast on
+  
+ * Return Label 0 returns from: 2 (broadcast_lfg)
+ * Return Label 0 reason:       Check to see if LFG was successfully broadcast on
                                 an open channel
+
+ * Return Label 1 returns from: 1 (scan_lfg)
+ * Return Label 1 reason:       Check to see if scan function finds a looking for 
+                                group broadcast message
 
  * Return Label 2 returns from: 7 (sleep)
  * Return Label 2 reason:       Later this needs to try to join the group, for now
@@ -36,26 +36,28 @@ int mcu_function_main(struct Node* nodes,
                      int node_count,
                      int id,
                      int group_max,
+                     int channels,
                      int debug) {
     int own_function_number = 0;
 
-    if (nodes[id].return_stack->returning_from == 7) {
+    if (nodes[id].return_stack->returning_from == 1) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
-        if (return_value < 0) {        
+        if (return_value < 0) {    
+            printf("Something is wrong\n");    
             // something is wrong
         }
         else {
             // have node try to join group later, for now just go to sleep
-            mcu_call(nodes, id, own_function_number, 2, 7);
+            mcu_call(nodes, id, own_function_number, 2, 8);
             return 0;
         }
     }
 
-    else if (nodes[id].return_stack->returning_from == 7) {
-        // for now anything that goes to sleep should stay asleep
+    else if (nodes[id].return_stack->returning_from == 8) {
+        // for now, periodically run another scan
         rs_pop(&nodes[id].return_stack);
-        mcu_call(nodes, id, own_function_number, 3, 7);
+        mcu_call(nodes, id, own_function_number, 3, 1);
         return 0;
     }
 
@@ -80,11 +82,11 @@ int mcu_function_main(struct Node* nodes,
         
         // Broadcast from first five nodes, others listen
         if (id < 5) {
-            mcu_call(nodes, id, own_function_number, 0, 1);
+            mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
         else {
-            mcu_call(nodes, id, own_function_number, 1, 2);
+            mcu_call(nodes, id, own_function_number, 1, 1);
             return 0;
         }    
     }
@@ -119,8 +121,13 @@ int mcu_function_scan_lfg(struct Node* nodes,
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
-        if (return_value < 0) {
+        if (return_value == -1) {
             // collision detected try again 
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+        if (return_value == -2) {
+            // Nothing heard try again
             mcu_call(nodes, id, own_function_number, 1, 7);
             return 0;
         }
@@ -159,9 +166,8 @@ int mcu_function_scan_lfg(struct Node* nodes,
             // Didn't hear anything, go to next channel
             if (nodes[id].active_channel == 16) {
                 // If at last channel, return to main
-                // TODO!!!
                 nodes[id].active_channel = 0;
-                mcu_call(nodes, id, own_function_number, 0, 4);
+                mcu_return(nodes, id, own_function_number, return_value);
                 return 0;
             }
             else {
@@ -175,9 +181,9 @@ int mcu_function_scan_lfg(struct Node* nodes,
         // Not returning from a call (first entry)
         // Start at first channel
         nodes[id].active_channel = 0;
-        // Initialize LFG tmp array
+        // Initialize LFG tmp array before scanning
         for (int i = 0; i < channels; i++) {
-            nodes[id].tmp_lfg_chans[i] = 0;
+            nodes[id].tmp_lfg_chans[i] = -1;
         }
         // Check if first channel is busy
         mcu_call(nodes, id, own_function_number, 0, 4);
@@ -317,7 +323,7 @@ int mcu_function_check_channel_busy(struct Node* nodes,
     
     for (int i = 0; i < node_count; i++) {
         if (i != id) {                  // don't check own id
-            if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active) {
+            if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active == 1) {
                 mcu_return(nodes, id, own_function_number, 1);
                 return 0;
             }
@@ -376,7 +382,8 @@ int mcu_function_transmit_message_complete(struct Node* nodes,
  * Function Busy time:          0   needs to be updated later to match transmit time
  * Function Return Labels:      0
 
- * Function Returns:           -1 - collision detected
+ * Function Returns:           -2 - nothing received 
+ *                             -1 - collision
  *                             ID - received data from node <id>
 **/
 int mcu_function_receive(struct Node* nodes,
@@ -391,14 +398,19 @@ int mcu_function_receive(struct Node* nodes,
         if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
             update_signal(nodes, id, i, debug);
             signals_detected++;
+            if (signals_detected > 1) {
+            }
             transmitting_node = i;
         }
     }
-    if (signals_detected > 0) {
+    if (signals_detected > 1) {
         mcu_return(nodes, id, own_function_number, -1);
         return 0;
     }
-
+    else if (signals_detected == 0) {
+        mcu_return(nodes, id, own_function_number, -2);
+        return 0;
+    }
     mcu_return(nodes, id, own_function_number, transmitting_node);
     return 0;    
 }
