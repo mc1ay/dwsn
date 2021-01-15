@@ -80,6 +80,7 @@ int mcu_function_main(struct Node* nodes,
         // First time entering main
         // Broadcast from first five nodes, others listen
         if (id < 5) {
+            nodes[id].active_channel = 3 * id % 5;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
