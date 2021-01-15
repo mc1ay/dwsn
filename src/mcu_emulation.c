@@ -41,6 +41,7 @@ int update_mcu(struct Node* nodes,
  * 6: transmit_message_complete
  * 7: receive
  * 8: sleep
+ * 9: respond_lfg
 **/
 int mcu_run_function(struct Node* nodes,
                      int node_count,
@@ -128,6 +129,15 @@ int mcu_run_function(struct Node* nodes,
                 }
                 else {            
                     mcu_function_sleep(nodes, node_count, id, debug);
+                }
+                break;
+            case 9:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_respond_lfg(nodes, node_count, id, debug);
                 }
                 break;
             default:

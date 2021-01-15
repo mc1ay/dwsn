@@ -13,7 +13,7 @@
  * Function Name:               main
  * Function Description:        Main Loop of microcontroller emulation routine
  * Function Busy times:         None
- * Function Return Labels:      2
+ * Function Return Labels:      4
   
  * Return Label 0 returns from: 2 (broadcast_lfg)
  * Return Label 0 reason:       Check to see if LFG was successfully broadcast on
@@ -23,9 +23,8 @@
  * Return Label 1 reason:       Check to see if scan function finds a looking for 
                                 group broadcast message
 
- * Return Label 2 returns from: 7 (sleep)
- * Return Label 2 reason:       Later this needs to try to join the group, for now
-                                just sleep
+ * Return Label 2 returns from: 9 (respond_lfg)
+ * Return Label 2 reason:       Respond to LFG broadcast
 
  * Return Label 3 returns from: 7 (sleep)
  * Return Label 3 reason:       Once in sleep function, keep repeating, for now                                                            
@@ -48,13 +47,29 @@ int mcu_function_main(struct Node* nodes,
             // something is wrong
         }
         else {
-            // have node try to join group later, for now just go to sleep
-            mcu_call(nodes, id, own_function_number, 2, 8);
+            // respond to LFG broadcast from node with strongest signal
+            int strongest_node_id = -1;
+            double strongest_signal = -1000000; // using large negative for now (update later)
+
+            // find strongest signal broadcasting LFG
+            for (int i = 0; i < channels; i++) {
+                if (nodes[id].tmp_lfg_chans[i] != -1) {
+                    if (nodes[id].received_signals[i] > strongest_signal) {
+                        strongest_node_id = i;
+                    }
+                }
+            }
+
+            // set active channel to same channel as strongest LFG broadcaster
+            nodes[id].active_channel = strongest_node_id;
+
+            // call respond_lfg
+            mcu_call(nodes, id, own_function_number, 2, 9);
             return 0;
         }
     }
 
-    else if (nodes[id].return_stack->returning_from == 8) {
+    else if (nodes[id].return_stack->returning_from == 9) {
         // for now, periodically run another scan
         rs_pop(&nodes[id].return_stack);
         mcu_call(nodes, id, own_function_number, 3, 1);
@@ -63,23 +78,6 @@ int mcu_function_main(struct Node* nodes,
 
     else {
         // First time entering main
-        // Assign initial channels (assuming 5 groups)
-        if (id % 5 == 0) {          
-            nodes[id].active_channel = 0;
-        }
-        else if (id % 5 == 1) {
-            nodes[id].active_channel = 3;
-        }
-        else if (id % 5 == 2) {
-            nodes[id].active_channel = 6;
-        }
-        else if (id % 5 == 3) {
-            nodes[id].active_channel = 9;
-        }
-        else if (id % 5 == 4) {
-            nodes[id].active_channel = 12;
-        }
-        
         // Broadcast from first five nodes, others listen
         if (id < 5) {
             mcu_call(nodes, id, own_function_number, 0, 2);
@@ -151,7 +149,6 @@ int mcu_function_scan_lfg(struct Node* nodes,
                 return 0;
             }
         }
-
     }
     else if (nodes[id].return_stack->returning_from == 4) {
         // Returning from check_channel_busy function
@@ -432,4 +429,66 @@ int mcu_function_sleep(struct Node* nodes,
     
     mcu_return(nodes, id, own_function_number, 0);
     return 0;    
+}
+
+/**
+ * Function Number:             9
+ * Function Name:               respond_lfg
+ * Function Description:        Respond to LFG broadcast
+ * Function Busy times:         None
+ * Function Return Labels:      2
+
+ * Return Label 0 returns from: 4 (check_channel_busy)
+ * Return Label 0 reason:       Make sure nothing is transmitting on channel before 
+                                responding to LFG
+
+ * Return Label 1 returns from: 5 (transmit_message_begin)
+ * Return Label 1 reason:       Check for successful transmission of LFG message
+
+ * Return Label 2 returns from: 6 (transmit_message_complete)
+ * Return Label 2 reason:       Turn off transmit
+
+ * Function Returns:            -1 - no clear channels
+ *                              channel - sent LFG on <channel>
+**/
+int mcu_function_respond_lfg(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 9;
+    
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == 1) {
+            // channel was busy, try again
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
+        }
+        else if (return_value == 0) {
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R");
+            mcu_call(nodes, id, own_function_number, 1, 5);
+            return 0;
+        }
+    }
+    else if (nodes[id].return_stack->returning_from == 5) {
+        // Returning from transmit_message_begin
+        // No error checking for now
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 2, 6);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 6) {
+        // Returning from transmit_message_complete
+        // No error checking for now, just return channel number
+        rs_pop(&nodes[id].return_stack);
+        mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+        return 0;
+    }
+    else {
+        // Not returning from a call (first entry)
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
+    return 0;   
 }
