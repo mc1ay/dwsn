@@ -53,6 +53,7 @@ struct Node {
     struct RS_Element* return_stack;
     char send_packet[256];
     int* tmp_lfg_chans;
+    double tmp_start_time;
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double,
