@@ -150,7 +150,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, debug);
+                    mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, group_max, debug);
                 }
                 break;
             default:

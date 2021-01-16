@@ -526,6 +526,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                                            int node_count,
                                            int id,
                                            double* current_time,
+                                           int group_max,
                                            int debug) {
     int own_function_number = 10;
 
@@ -549,7 +550,27 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG-R packet, add node to group
                 // TO-DO: add response packet
-                // !!! Immediate TO-DO: group array assignment
+                int found_slot = 0;
+                for (int i = 0; i < group_max; i++) {
+                    if (nodes[id].group_list[i] == -1) {
+                        nodes[id].group_list[i] = return_value;
+                        found_slot++;
+                        // exit loop
+                        i = group_max;
+                    }
+                }
+                if (found_slot == 0) {
+                    // group is full (TO-DO, respond to this)
+                    // for now, just keep scanning
+                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    return 0;
+                }
+                else {
+                    // TO-DO: send response
+                    // for now, just keep scanning
+                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    return 0;                    
+                }
             }
             else {
                 // Not LFG-R packet, keep listening
