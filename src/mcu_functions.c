@@ -53,6 +53,7 @@ int mcu_function_main(struct Node* nodes,
         else {
             // scan for LFG reply packets
             mcu_call(nodes, id, own_function_number, 4, 10);
+            return 0;
         }
 
     }
@@ -527,16 +528,14 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                                            double* current_time,
                                            int debug) {
     int own_function_number = 10;
-    
-    // check time
-    if (nodes[id].tmp_start_time + 2.0 < *current_time) {
-        // stop listening for replies, return to main
-        printf("time expired\n");
-        mcu_return(nodes, id, own_function_number, 0);
-        return 0;  
-    }
 
     if (nodes[id].return_stack->returning_from == 4) {
+        // check time
+        if (nodes[id].tmp_start_time + 2.0 < *current_time) {
+            // time expired stop listening for replies, return to main
+            mcu_return(nodes, id, own_function_number, 0);
+        return 0;  
+        }
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
