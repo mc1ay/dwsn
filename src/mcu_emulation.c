@@ -32,16 +32,17 @@ int update_mcu(struct Node* nodes,
  *
  * Functions:
  * ----------------
- * 0: main
- * 1: scan_lfg
- * 2: broadcast_lfg
- * 3: find_clear_channel
- * 4: check_channel_busy
- * 5: transmit_message_begin
- * 6: transmit_message_complete
- * 7: receive
- * 8: sleep
- * 9: respond_lfg
+ *  0: main
+ *  1: scan_lfg
+ *  2: broadcast_lfg
+ *  3: find_clear_channel
+ *  4: check_channel_busy
+ *  5: transmit_message_begin
+ *  6: transmit_message_complete
+ *  7: receive
+ *  8: sleep
+ *  9: respond_lfg
+ * 10: scan_lfg_responses
 **/
 int mcu_run_function(struct Node* nodes,
                      int node_count,
@@ -138,6 +139,15 @@ int mcu_run_function(struct Node* nodes,
                 }
                 else {            
                     mcu_function_respond_lfg(nodes, node_count, id, debug);
+                }
+                break;
+            case 10:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_scan_lfg_responses(nodes, node_count, id, debug);
                 }
                 break;
             default:

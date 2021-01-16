@@ -27,7 +27,10 @@
  * Return Label 2 reason:       Respond to LFG broadcast
 
  * Return Label 3 returns from: 7 (sleep)
- * Return Label 3 reason:       Once in sleep function, keep repeating, for now                                                            
+ * Return Label 3 reason:       Once in sleep function, keep repeating, for now 
+
+ * Return Label 4 returns from: 9 (scan_lfg_responses)
+ * Return Label 4 reason:       Handle LFG responses heard on active channel                                                                 
 
  * Function Returns:            nothing
 **/
@@ -38,6 +41,21 @@ int mcu_function_main(struct Node* nodes,
                      int channels,
                      int debug) {
     int own_function_number = 0;
+
+    if (nodes[id].return_stack->returning_from == 2) {
+        // returning from LFG broadcast, listen for replies for specified time
+        // TO-DO: make scan time a parameter later
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value < 0) {    
+            printf("No clear channels found\n");    
+        }
+        else {
+            // scan for LFG reply packets
+            mcu_call(nodes, id, own_function_number, 4, 10);
+        }
+
+    }
 
     if (nodes[id].return_stack->returning_from == 1) {
         int return_value = nodes[id].return_stack->return_value;
@@ -492,4 +510,23 @@ int mcu_function_respond_lfg(struct Node* nodes,
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;   
+}
+
+/**
+ * Function Number:             10
+ * Function Name:               scan_lfg_responses
+ * Function Description:        Listens for LFG response packets on active channel for specific time
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_scan_lfg_responses(struct Node* nodes,
+                                           int node_count,
+                                           int id,
+                                           int debug) {
+    int own_function_number = 10;
+    
+    mcu_return(nodes, id, own_function_number, 0);
+    return 0;    
 }
