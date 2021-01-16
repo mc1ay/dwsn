@@ -529,6 +529,36 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                                            int debug) {
     int own_function_number = 10;
 
+    if (nodes[id].return_stack->returning_from == 7) {
+        // Returning from receive function
+        // Return value is sending node ID
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == -1) {
+            // collision detected try again 
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+        if (return_value == -2) {
+            // Nothing heard try again
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+        else {
+            // Check for LFG
+            if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
+                // Found LFG-R packet, add node to group
+                // TO-DO: add response packet
+                // !!! Immediate TO-DO: group array assignment
+            }
+            else {
+                // Not LFG-R packet, keep listening
+                mcu_call(nodes, id, own_function_number, 0, 4);
+                return 0;
+            }
+        }
+    }
+
     if (nodes[id].return_stack->returning_from == 4) {
         // check time
         if (nodes[id].tmp_start_time + 2.0 < *current_time) {
