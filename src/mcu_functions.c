@@ -524,9 +524,33 @@ int mcu_function_respond_lfg(struct Node* nodes,
 int mcu_function_scan_lfg_responses(struct Node* nodes,
                                            int node_count,
                                            int id,
+                                           double* current_time,
                                            int debug) {
     int own_function_number = 10;
     
-    mcu_return(nodes, id, own_function_number, 0);
+    // check time
+    if (nodes[id].tmp_start_time + 2.0 < *current_time) {
+        // stop listening for replies, return to main
+        printf("time expired\n");
+        mcu_return(nodes, id, own_function_number, 0);
+        return 0;  
+    }
+
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == 1) {
+            // Activity on channel, get packet
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+    }
+    else {
+        // Not returning from a call (first entry)
+        // set start_time and check for activity on active channel
+        nodes[id].tmp_start_time = *current_time;
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
     return 0;    
 }

@@ -18,10 +18,12 @@ int update_mcu(struct Node* nodes,
                double time_resolution,
                int group_max,
                int channels,
+               double* current_time,
                int debug) {
     for (int i = 0; i < node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
-        mcu_run_function(nodes, node_count, i, time_resolution, group_max, channels, debug);
+        mcu_run_function(nodes, node_count, i, time_resolution, group_max, 
+                         channels, current_time, debug);
     }
     return 0;
 }
@@ -50,6 +52,7 @@ int mcu_run_function(struct Node* nodes,
                      double time_resolution,
                      int group_max,
                      int channels,
+                     double* current_time,
                      int debug) {
     double busy_time = 0.00;
 
@@ -147,7 +150,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_scan_lfg_responses(nodes, node_count, id, debug);
+                    mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, debug);
                 }
                 break;
             default:
