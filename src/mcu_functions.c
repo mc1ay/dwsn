@@ -231,6 +231,7 @@ int mcu_function_scan_lfg(struct Node* nodes,
 int mcu_function_broadcast_lfg(struct Node* nodes,
                                int id,
                                int group_max,
+                               double* current_time,
                                int debug) {
     int own_function_number = 2;
                                 
@@ -258,13 +259,25 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
-        // No error checking for now, just return channel number
+        // No error checking for now, just transmit until timer expired
         rs_pop(&nodes[id].return_stack);
-        mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+        // check time
+        if (nodes[id].tmp_start_time + 2.0 < *current_time) {
+            // time expired stop listening for replies, return to main
+            // after resetting timer
+            nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
+            mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+            return 0;  
+        }
+        else {
+            // timer not expired, keep transmitting
+            mcu_call(nodes, id, own_function_number, 1, 5);
+        }
         return 0;
     }
     else {  
         // Not returning from a call (first entry)
+        nodes[id].tmp_start_time = *current_time;
         mcu_call(nodes, id, own_function_number, 0, 3);
     }
     return 0;
@@ -565,6 +578,12 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                 int available_slot = -1;
                 int i = 0;
                 do {
+                    if (nodes[id].group_list[i] == return_value) {
+                        // already in group, just return for now
+                        // TO-DO: response to this
+                        nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
+                        mcu_return(nodes, id, own_function_number, 0);
+                    }
                     if (nodes[id].group_list[i] == -1) {
                         available_slot = i;
                     }
@@ -576,6 +595,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                     printf("Group full!\n");
                     // group is full (TO-DO, respond to this)
                     // for now, return to main
+                    nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
                     mcu_return(nodes, id, own_function_number, 0);
                     return 0;
                 }
@@ -601,6 +621,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         // check time
         if (nodes[id].tmp_start_time + 2.0 < *current_time) {
             // time expired stop listening for replies, return to main
+            nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
             mcu_return(nodes, id, own_function_number, 0);
         return 0;  
         }

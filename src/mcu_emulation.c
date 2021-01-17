@@ -65,7 +65,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.00;       // assuming 50 ms listen time per channel, update later
+                    busy_time = 0.00;       
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
@@ -78,7 +78,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_broadcast_lfg(nodes, id, group_max, debug);
+                    mcu_function_broadcast_lfg(nodes, id, group_max, current_time, debug);
                 }
                 break;
             case 3:
@@ -92,7 +92,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 4:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.05;       // assuming 50ms listen time per channel
+                    busy_time = 0.00;       // removing busy time for now
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
@@ -110,7 +110,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 6:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 2.00;       // broadcast LFG for 2.0 seconds
+                    busy_time = 0.00;       
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
