@@ -45,6 +45,9 @@ int update_mcu(struct Node* nodes,
  *  8: sleep
  *  9: respond_lfg
  * 10: scan_lfg_responses
+ * 11: random_wait
+ * 12: lfgr_send_ack
+ * 13: lfgr_get_ack
 **/
 int mcu_run_function(struct Node* nodes,
                      int node_count,

@@ -469,7 +469,7 @@ int mcu_function_sleep(struct Node* nodes,
  * Function Name:               respond_lfg
  * Function Description:        Respond to LFG broadcast
  * Function Busy times:         None
- * Function Return Labels:      2
+ * Function Return Labels:      4
 
  * Return Label 0 returns from: 4 (check_channel_busy)
  * Return Label 0 reason:       Make sure nothing is transmitting on channel before 
@@ -658,6 +658,89 @@ int mcu_function_random_wait(struct Node* nodes,
                                     double time_resolution,
                                     int debug) {    
     int own_function_number = 11;
+    // for now this does nothing, busy_time is set in mcu_run_function()
+    mcu_return(nodes, id, own_function_number, 0);
+
+    return 0;    
+}
+
+/**
+ * Function Number:             12
+ * Function Name:               lfgr_send_ack
+ * Function Description:        replies to sender that lfg-r was received
+ * Function Busy time:          0 
+ * Function Return Labels:      3
+
+ * Return Label 0 returns from: 4 (check_channel_busy)
+ * Return Label 0 reason:       Make sure nothing is transmitting on channel before 
+                                responding to LFG
+
+ * Return Label 1 returns from: 5 (transmit_message_begin)
+ * Return Label 1 reason:       Check for successful transmission of LFG message
+
+ * Return Label 2 returns from: 6 (transmit_message_complete)
+ * Return Label 2 reason:       Turn off transmit
+
+ * Function Returns:            -1 - no clear channels
+ *                              channel - sent LFG on <channel>
+**/
+int mcu_function_lfgr_send_ack(struct Node* nodes,
+                                    int node_count,
+                                    int id,
+                                    int debug) {    
+    int own_function_number = 12;
+
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == 1) {
+            // channel was busy, try again
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
+        }
+        else if (return_value == 0) {
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R ACK");
+            mcu_call(nodes, id, own_function_number, 1, 5);
+            return 0;
+        }
+    }
+    else if (nodes[id].return_stack->returning_from == 5) {
+        // Returning from transmit_message_begin
+        // No error checking for now
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 2, 6);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 6) {
+        // Returning from transmit_message_complete
+        // No error checking for now, just return channel number
+        rs_pop(&nodes[id].return_stack);
+        mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+        return 0;
+    }
+    else {
+        // Not returning from a call (first entry)
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
+    return 0;   
+}
+
+/**
+ * Function Number:             13
+ * Function Name:               lfgr_get_ack
+ * Function Description:        listens for lfgr_ack packet 
+ * Function Busy time:          random 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_lfgr_get_ack(struct Node* nodes,
+                                    int node_count,
+                                    int id,
+                                    double* current_time,
+                                    int debug) {    
+    int own_function_number = 13;
     // for now this does nothing, busy_time is set in mcu_run_function()
     mcu_return(nodes, id, own_function_number, 0);
 
