@@ -54,6 +54,7 @@ struct Node {
     char send_packet[256];
     int* tmp_lfg_chans;
     double tmp_start_time;
+    int dest_node;
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double,
