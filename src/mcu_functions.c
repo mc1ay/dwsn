@@ -97,9 +97,9 @@ int mcu_function_main(struct Node* nodes,
 
     else {
         // First time entering main
-        // Broadcast from first five nodes, others listen
-        if (id < 5) {
-            nodes[id].active_channel = 3 * id % 5;
+        // Broadcast from first two nodes, others listen
+        if (id < 2) {
+            nodes[id].active_channel = 3 * id % 2;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
@@ -483,7 +483,6 @@ int mcu_function_respond_lfg(struct Node* nodes,
 
     if (nodes[id].return_stack->returning_from == 11) {
         // Random wait is over
-        printf("wait is over\n");
         rs_pop(&nodes[id].return_stack);
         // call transmit function
         mcu_call(nodes, id, own_function_number, 1, 5);
@@ -563,24 +562,27 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
             if (strcmp(nodes[return_value].send_packet, "LFG-R") == 0) {
                 // Found LFG-R packet, add node to group
                 // TO-DO: add response packet
-                int found_slot = 0;
-                for (int i = 0; i < group_max; i++) {
+                int available_slot = -1;
+                int i = 0;
+                do {
                     if (nodes[id].group_list[i] == -1) {
-                        nodes[id].group_list[i] = return_value;
-                        found_slot++;
-                        // exit loop
-                        i = group_max;
+                        available_slot = i;
                     }
+                    i++;
                 }
-                if (found_slot == 0) {
+                while (i < group_max && available_slot == -1);
+ 
+                if (available_slot == -1) {
                     printf("Group full!\n");
                     // group is full (TO-DO, respond to this)
-                    // for now, just keep scanning
-                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    // for now, return to main
+                    mcu_return(nodes, id, own_function_number, 0);
                     return 0;
                 }
                 else {
+                    // add node to group list
                     printf("node %d added node %d to group\n", id, return_value);
+                    nodes[id].group_list[available_slot] = return_value;
                     // TO-DO: send response
                     // for now, just keep scanning
                     mcu_call(nodes, id, own_function_number, 0, 4);
