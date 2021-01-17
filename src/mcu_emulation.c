@@ -155,11 +155,10 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 11:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.00;       
+                    busy_time = rand() % 100 * time_resolution;   
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    fs_pop(&nodes[id].function_stack);
                     mcu_function_random_wait(nodes, node_count, id, time_resolution, debug);
                 }
                 break;

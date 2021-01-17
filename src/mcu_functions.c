@@ -468,6 +468,9 @@ int mcu_function_sleep(struct Node* nodes,
  * Return Label 2 returns from: 6 (transmit_message_complete)
  * Return Label 2 reason:       Turn off transmit
 
+ * Return Label 3 returns from: 11 (random wait)
+ * Return Label 3 reason:       waiting period to minimize collisions
+
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
@@ -477,7 +480,16 @@ int mcu_function_respond_lfg(struct Node* nodes,
                                            int debug) {
     int own_function_number = 9;
     
-    if (nodes[id].return_stack->returning_from == 4) {
+
+    if (nodes[id].return_stack->returning_from == 11) {
+        // Random wait is over
+        printf("wait is over\n");
+        rs_pop(&nodes[id].return_stack);
+        // call transmit function
+        mcu_call(nodes, id, own_function_number, 1, 5);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 4) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
@@ -489,11 +501,7 @@ int mcu_function_respond_lfg(struct Node* nodes,
         else if (return_value == 0) {
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R");
             // add random wait value before transmitting to minimize collisions
-            // but bypass mcu_call and just push into fs stack
-            // return label doesn't matter, using -1
-            fs_push(own_function_number, -1, &nodes[id].function_stack);
-            // call transmit function
-            mcu_call(nodes, id, own_function_number, 1, 5);
+            mcu_call(nodes, id, own_function_number, 3, 11);
             return 0;
         }
     }
@@ -536,12 +544,10 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
     int own_function_number = 10;
 
     if (nodes[id].return_stack->returning_from == 7) {
-        printf("returning from 7\n");
         // Returning from receive function
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
-        printf("return value %d\n", return_value);
         if (return_value == -1) {
             // collision detected try again 
             mcu_call(nodes, id, own_function_number, 1, 7);
@@ -628,10 +634,9 @@ int mcu_function_random_wait(struct Node* nodes,
                                     int id,
                                     double time_resolution,
                                     int debug) {    
-    // for now just using 0-99 * time_resolution as random time
-    // TO-DO: find optimal random value 
-    nodes[id].busy_remaining = rand() % 100 * time_resolution;
+    int own_function_number = 11;
+    // for now this does nothing, busy_time is set in mcu_run_function()
+    mcu_return(nodes, id, own_function_number, 0);
 
-    // don't mcu_return here or busy_time will be lost
     return 0;    
 }
