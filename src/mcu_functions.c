@@ -555,7 +555,15 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                                            int debug) {
     int own_function_number = 10;
 
-    if (nodes[id].return_stack->returning_from == 7) {
+    if (nodes[id].return_stack->returning_from == 12) {
+        // Returning from ACK transmit
+        // No return checking for now
+        // Just keep scanning
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 0, 4);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 7) {
         // Returning from receive function
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
@@ -603,9 +611,9 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                     // add node to group list
                     printf("node %d added node %d to group\n", id, return_value);
                     nodes[id].group_list[available_slot] = return_value;
-                    // TO-DO: send response
-                    // for now, just keep scanning
-                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    // send ACK
+                    nodes[id].dest_node = return_value;
+                    mcu_call(nodes, id, own_function_number, 0, 12);
                     return 0;                    
                 }
             }
@@ -616,8 +624,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
             }
         }
     }
-
-    if (nodes[id].return_stack->returning_from == 4) {
+    else if (nodes[id].return_stack->returning_from == 4) {
         // check time
         if (nodes[id].tmp_start_time + 2.0 < *current_time) {
             // time expired stop listening for replies, return to main
@@ -700,7 +707,8 @@ int mcu_function_lfgr_send_ack(struct Node* nodes,
             return 0;
         }
         else if (return_value == 0) {
-            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R ACK");
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), 
+                     "LFG-R ACK %d", nodes[id].dest_node);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -715,6 +723,7 @@ int mcu_function_lfgr_send_ack(struct Node* nodes,
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
         // No error checking for now, just return channel number
+        printf("Node %d sent %s\n", id, nodes[id].send_packet);
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
         return 0;
