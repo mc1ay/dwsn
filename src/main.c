@@ -50,7 +50,7 @@ int clock_tick(struct Node* nodes,
 int main(int argc, char **argv) {
     // Initialization and defaults
     clock_t t1, t2;
-    int node_count = 20;
+    int node_count = 10;
     int moving_nodes = 0; 
     int ret = 0;
     double gravity = 9.80665;

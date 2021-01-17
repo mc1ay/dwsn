@@ -488,6 +488,11 @@ int mcu_function_respond_lfg(struct Node* nodes,
         }
         else if (return_value == 0) {
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R");
+            // add random wait value before transmitting to minimize collisions
+            // but bypass mcu_call and just push into fs stack
+            // return label doesn't matter, using -1
+            fs_push(own_function_number, -1, &nodes[id].function_stack);
+            // call transmit function
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -531,10 +536,12 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
     int own_function_number = 10;
 
     if (nodes[id].return_stack->returning_from == 7) {
+        printf("returning from 7\n");
         // Returning from receive function
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+        printf("return value %d\n", return_value);
         if (return_value == -1) {
             // collision detected try again 
             mcu_call(nodes, id, own_function_number, 1, 7);
@@ -547,7 +554,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         }
         else {
             // Check for LFG
-            if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
+            if (strcmp(nodes[return_value].send_packet, "LFG-R") == 0) {
                 // Found LFG-R packet, add node to group
                 // TO-DO: add response packet
                 int found_slot = 0;
@@ -560,12 +567,14 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                     }
                 }
                 if (found_slot == 0) {
+                    printf("Group full!\n");
                     // group is full (TO-DO, respond to this)
                     // for now, just keep scanning
                     mcu_call(nodes, id, own_function_number, 0, 4);
                     return 0;
                 }
                 else {
+                    printf("node %d added node %d to group\n", id, return_value);
                     // TO-DO: send response
                     // for now, just keep scanning
                     mcu_call(nodes, id, own_function_number, 0, 4);
@@ -602,5 +611,27 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         nodes[id].tmp_start_time = *current_time;
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
+    return 0;    
+}
+
+/**
+ * Function Number:             11
+ * Function Name:               random_wait
+ * Function Description:        sets busy time to random value
+ * Function Busy time:          random 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_random_wait(struct Node* nodes,
+                                    int node_count,
+                                    int id,
+                                    double time_resolution,
+                                    int debug) {    
+    // for now just using 0-99 * time_resolution as random time
+    // TO-DO: find optimal random value 
+    nodes[id].busy_remaining = rand() % 100 * time_resolution;
+
+    // don't mcu_return here or busy_time will be lost
     return 0;    
 }

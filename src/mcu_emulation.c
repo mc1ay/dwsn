@@ -153,6 +153,16 @@ int mcu_run_function(struct Node* nodes,
                     mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, group_max, debug);
                 }
                 break;
+            case 11:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {
+                    fs_pop(&nodes[id].function_stack);
+                    mcu_function_random_wait(nodes, node_count, id, time_resolution, debug);
+                }
+                break;
             default:
                 abort ();
         }
