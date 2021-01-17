@@ -165,6 +165,24 @@ int mcu_run_function(struct Node* nodes,
                     mcu_function_random_wait(nodes, node_count, id, time_resolution, debug);
                 }
                 break;
+            case 12:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_lfgr_send_ack(nodes, node_count, id, debug);
+                }
+                break;
+            case 13:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_lfgr_get_ack(nodes, node_count, id, current_time, debug);
+                }
+                break;            
             default:
                 abort ();
         }
