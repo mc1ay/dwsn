@@ -6,6 +6,7 @@
  * @date    12/26/2020
 **/
 
+#include <float.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>

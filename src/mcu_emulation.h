@@ -7,6 +7,7 @@
 **/
 
 #include "node.h"
+#include <float.h>
 
 #ifndef mcuemulation_H
 #define mcuemulation_H

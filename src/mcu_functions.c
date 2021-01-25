@@ -13,24 +13,15 @@
  * Function Name:               main
  * Function Description:        Main Loop of microcontroller emulation routine
  * Function Busy times:         None
- * Function Return Labels:      4
+ * Function Return Labels:      7
   
  * Return Label 0 returns from: 2 (broadcast_lfg)
- * Return Label 0 reason:       Check to see if LFG was successfully broadcast on
-                                an open channel
-
  * Return Label 1 returns from: 1 (scan_lfg)
- * Return Label 1 reason:       Check to see if scan function finds a looking for 
-                                group broadcast message
-
  * Return Label 2 returns from: 9 (respond_lfg)
- * Return Label 2 reason:       Respond to LFG broadcast
-
- * Return Label 3 returns from: 7 (sleep)
- * Return Label 3 reason:       Once in sleep function, keep repeating, for now 
-
- * Return Label 4 returns from: 9 (scan_lfg_responses)
- * Return Label 4 reason:       Handle LFG responses heard on active channel                                                                 
+ * Return Label 3 returns from: 8 (sleep)
+ * Return Label 4 returns from: 10 (scan_lfg_responses)
+ * Return Label 5 returns from: 8 (sleep)
+ * Return Label 6 returns from: 8 (sleep)
 
  * Function Returns:            nothing
 **/
@@ -41,22 +32,6 @@ int mcu_function_main(struct Node* nodes,
                      int channels,
                      int debug) {
     int own_function_number = 0;
-
-    if (nodes[id].return_stack->returning_from == 2) {
-        // returning from LFG broadcast, listen for replies for specified time
-        // TO-DO: make scan time a parameter later
-        int return_value = nodes[id].return_stack->return_value;
-        rs_pop(&nodes[id].return_stack);
-        if (return_value < 0) {    
-            printf("No clear channels found\n");    
-        }
-        else {
-            // scan for LFG reply packets
-            mcu_call(nodes, id, own_function_number, 4, 10);
-            return 0;
-        }
-
-    }
 
     if (nodes[id].return_stack->returning_from == 1) {
         int return_value = nodes[id].return_stack->return_value;
@@ -79,6 +54,12 @@ int mcu_function_main(struct Node* nodes,
                 }
             }
 
+            // if no available nodes, scan again
+            if (strongest_node_id == -1) {
+                mcu_call(nodes, id, own_function_number, 1, 1);
+                return 0;
+            }
+
             // set active channel to same channel as strongest LFG broadcaster
             nodes[id].active_channel = strongest_node_id;
 
@@ -87,23 +68,50 @@ int mcu_function_main(struct Node* nodes,
             return 0;
         }
     }
-
-    else if (nodes[id].return_stack->returning_from == 9) {
-        // for now, periodically run another scan
+    else if (nodes[id].return_stack->returning_from == 2) {
+        // returning from LFG broadcast, listen for replies for specified time
+        // TO-DO: make scan time a parameter later
+        int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
-        mcu_call(nodes, id, own_function_number, 3, 1);
+        if (return_value < 0) {    
+            printf("No clear channels found\n");    
+        }
+        else {
+            // scan for LFG reply packets
+            printf("Node %d listening for LFG replies\n", id);
+            mcu_call(nodes, id, own_function_number, 4, 10);
+            return 0;
+        }
+
+    }
+    else if (nodes[id].return_stack->returning_from == 8) {
+        // for now, stay asleep
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 5, 8);
         return 0;
     }
-
+    else if (nodes[id].return_stack->returning_from == 9) {
+        // for now, just go to sleep
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 3, 8);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 10) {
+        // for now, just go to sleep
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 6, 8);
+        return 0;
+    }
     else {
         // First time entering main
-        // Broadcast from first two nodes, others listen
-        if (id < 2) {
+        // Broadcast from first node, others listen
+        if (id < 1) {
             nodes[id].active_channel = 3 * id % 2;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
         else {
+            // Scan from remaining nodes
             mcu_call(nodes, id, own_function_number, 1, 1);
             return 0;
         }    
@@ -119,9 +127,7 @@ int mcu_function_main(struct Node* nodes,
  * Function Return Labels:      2
  *
  * Return Label 0 returns from: 4 (check_channel_busy)
- * Return Label 0 reason:       See if there is any activity on selected channel
  * Return Label 1 returns from: 7 (receive)
- * Return Label 1 reason:       Get incoming packet
  *
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
@@ -155,6 +161,7 @@ int mcu_function_scan_lfg(struct Node* nodes,
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
+                printf("Node %d heard LFG broadcast from node %d on channel %d\n", id, return_value, nodes[id].active_channel);
             }
             // Keep scanning if not at last channel
             if (nodes[id].active_channel == 16) {
@@ -241,6 +248,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
         if (return_value >= 0) {
             // If clear channel was found, broadcast LFG on it
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG");
+            printf("Node %d broadcasting LFG on channel %d on next tick\n", id, nodes[id].active_channel);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -251,34 +259,36 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
         }
     }
     else if (nodes[id].return_stack->returning_from == 5) {
-        // Returning from transmit_message_begin
-        // No error checking for now
+        // No error checking for now, just transmit until timer expired
         rs_pop(&nodes[id].return_stack);
-        mcu_call(nodes, id, own_function_number, 2, 6);
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
-        // No error checking for now, just transmit until timer expired
+        printf("Node %d stopped broadcasting LFG\n", id);
+
+        // No error checking for now
         rs_pop(&nodes[id].return_stack);
-        // check time
-        if (nodes[id].tmp_start_time + 2.0 < *current_time) {
-            // time expired stop listening for replies, return to main
-            // after resetting timer
-            nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
-            mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
-            return 0;  
-        }
-        else {
-            // timer not expired, keep transmitting
-            mcu_call(nodes, id, own_function_number, 1, 5);
-        }
+        mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
+
         return 0;
     }
     else {  
-        // Not returning from a call (first entry)
-        nodes[id].tmp_start_time = *current_time;
-        mcu_call(nodes, id, own_function_number, 0, 3);
+        // Not returning from a call
+        if (nodes[id].tmp_start_time == FLT_MAX) {
+            // First call
+            nodes[id].tmp_start_time = *current_time;
+            mcu_call(nodes, id, own_function_number, 0, 3);
+            return 0;
+        }
+        else {
+            // check time
+            if (nodes[id].tmp_start_time + 3.0 < *current_time) {
+                // time expired, stop transmit after resetting timer
+                nodes[id].tmp_start_time = FLT_MAX;
+                mcu_call(nodes, id, own_function_number, 2, 6);
+            }
+        }   
     }
     return 0;
 }
@@ -399,7 +409,13 @@ int mcu_function_transmit_message_complete(struct Node* nodes,
                                            int debug) {
     int own_function_number = 6;
     
+    // Turn off transmit
     nodes[id].transmit_active = 0;
+
+    // Erase send packet
+    //for (int i = 0; i < sizeof(nodes[id].send_packet); i++) {
+    //    nodes[id].send_packet[i] = '\0';
+    //}
 
     mcu_return(nodes, id, own_function_number, 1);
     return 0;    
@@ -425,15 +441,18 @@ int mcu_function_receive(struct Node* nodes,
     int transmitting_node = -1;
 
     for (int i = 0; i < node_count; i++) {
-        if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
-            update_signal(nodes, id, i, debug);
-            signals_detected++;
-            if (signals_detected > 1) {
+        if (i != id) {          // Don't check own ID
+            if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
+                update_signal(nodes, id, i, debug);
+                signals_detected++;
+                if (signals_detected > 1) {
+                }
+                transmitting_node = i;
             }
-            transmitting_node = i;
         }
     }
     if (signals_detected > 1) {
+        printf("Node %d detected collision\n", id);
         mcu_return(nodes, id, own_function_number, -1);
         return 0;
     }
@@ -484,12 +503,16 @@ int mcu_function_sleep(struct Node* nodes,
  * Return Label 3 returns from: 11 (random wait)
  * Return Label 3 reason:       waiting period to minimize collisions
 
+ * Return Label 4 returns from: 11 (random wait)
+ * Return Label 4 reason:       re-transmit wait
+
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
 int mcu_function_respond_lfg(struct Node* nodes,
                                            int node_count,
                                            int id,
+                                           double* current_time,
                                            int debug) {
     int own_function_number = 9;
     
@@ -505,8 +528,8 @@ int mcu_function_respond_lfg(struct Node* nodes,
         else {
             // ACK not received try again
             // later, check to see if group was full or other error
-            mcu_call(nodes, id, own_function_number, 0, 4);
-            return 0;            
+            mcu_call(nodes, id, own_function_number, 4, 11);
+            return 0; 
         }
     }
     else if (nodes[id].return_stack->returning_from == 11) {
@@ -535,16 +558,20 @@ int mcu_function_respond_lfg(struct Node* nodes,
     else if (nodes[id].return_stack->returning_from == 5) {
         // Returning from transmit_message_begin
         // No error checking for now
+        printf("Node %d sent LFG-R on channel %d\n", id, nodes[id].active_channel);
         rs_pop(&nodes[id].return_stack);
         mcu_call(nodes, id, own_function_number, 2, 6);
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
-        // No error checking for now, just return channel number
+        printf("Node %d stopped transmitting %d\n", id, nodes[id].active_channel);
+
+        // No error checking for now, just check for ACK
         rs_pop(&nodes[id].return_stack);
         // Check for ACK
         mcu_call(nodes, id, own_function_number, 4, 13);
+        return 0;
     }
     else {
         // Not returning from a call (first entry)
@@ -579,46 +606,47 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 7) {
+
         // Returning from receive function
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         if (return_value == -1) {
             // collision detected try again 
-            mcu_call(nodes, id, own_function_number, 1, 7);
+            mcu_call(nodes, id, own_function_number, 1, 4);
             return 0;
         }
         if (return_value == -2) {
             // Nothing heard try again
-            mcu_call(nodes, id, own_function_number, 1, 7);
+            mcu_call(nodes, id, own_function_number, 1, 4);
             return 0;
         }
         else {
             // Check for LFG
             if (strcmp(nodes[return_value].send_packet, "LFG-R") == 0) {
+                printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
                 // Found LFG-R packet, add node to group
-                // TO-DO: add response packet
                 int available_slot = -1;
                 int i = 0;
                 do {
                     if (nodes[id].group_list[i] == return_value) {
-                        // already in group, just return for now
-                        // TO-DO: response to this
-                        nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
-                        mcu_return(nodes, id, own_function_number, 0);
+                        // already in group, re-send ACK
+                        nodes[id].dest_node = return_value;
+                        mcu_call(nodes, id, own_function_number, 0, 12);
+                        return 0; 
                     }
                     if (nodes[id].group_list[i] == -1) {
                         available_slot = i;
                     }
                     i++;
                 }
-                while (i < group_max && available_slot == -1);
+                while (i < group_max - 1 && available_slot == -1);
  
                 if (available_slot == -1) {
                     printf("Group full!\n");
                     // group is full (TO-DO, respond to this)
                     // for now, return to main
-                    nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
+                    nodes[id].tmp_start_time = FLT_MAX;
                     mcu_return(nodes, id, own_function_number, 0);
                     return 0;
                 }
@@ -640,26 +668,33 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         }
     }
     else if (nodes[id].return_stack->returning_from == 4) {
-        // check time
-        if (nodes[id].tmp_start_time + 2.0 < *current_time) {
-            // time expired stop listening for replies, return to main
-            nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
-            mcu_return(nodes, id, own_function_number, 0);
-        return 0;  
-        }
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+        // check time
+        if (nodes[id].tmp_start_time + 5.0 < *current_time) {
+            // time expired stop listening for replies, return to main
+            nodes[id].tmp_start_time = FLT_MAX;
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;  
+        }
+        // time not expired, continue
         if (return_value == 1) {
             // Activity on channel, get packet
             mcu_call(nodes, id, own_function_number, 1, 7);
             return 0;
         }
+        else {
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;            
+        }
     }
     else {
         // Not returning from a call (first entry)
         // set start_time and check for activity on active channel
+        printf("Node %d listening for LFG-R packets on channel %d\n", id, nodes[id].active_channel);
         nodes[id].tmp_start_time = *current_time;
+
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;    
@@ -737,7 +772,6 @@ int mcu_function_lfgr_send_ack(struct Node* nodes,
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
         // No error checking for now, just return channel number
-        printf("Node %d sent %s\n", id, nodes[id].send_packet);
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
         return 0;
@@ -773,24 +807,24 @@ int mcu_function_lfgr_get_ack(struct Node* nodes,
         rs_pop(&nodes[id].return_stack);
         if (return_value == -1) {
             // collision detected try again 
-            mcu_call(nodes, id, own_function_number, 1, 7);
+            mcu_call(nodes, id, own_function_number, 1, 4);
             return 0;
         }
         if (return_value == -2) {
             // Nothing heard try again
-            mcu_call(nodes, id, own_function_number, 1, 7);
+            mcu_call(nodes, id, own_function_number, 1, 4);
             return 0;
         }
         else {
             // Check for LFG ACK
-            // *** Immediate TO-DO fix this string
             char packet_to_match[256];
             snprintf(packet_to_match, sizeof(packet_to_match), 
                      "LFG-R ACK %d", id);
             if (strcmp(nodes[return_value].send_packet, packet_to_match) == 0) {
                 // Found LFG-R ACK packet, return to caller
+                printf("Node %d received ACK\n", id);
                 mcu_return(nodes, id, own_function_number, 1);
-
+                return 0;
             }
             else {
                 // Not LFG-R ACK packet, keep listening
@@ -800,20 +834,26 @@ int mcu_function_lfgr_get_ack(struct Node* nodes,
         }
     }
     else if (nodes[id].return_stack->returning_from == 4) {
-        // check time
-        if (nodes[id].tmp_start_time + 2.0 < *current_time) {
-            // time expired stop listening for replies, return to main
-            nodes[id].tmp_start_time = 999999.9;   // just using a large value for now
-            mcu_return(nodes, id, own_function_number, 0);
-        return 0;  
-        }
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+        // check time
+        if (nodes[id].tmp_start_time + 0.05 < *current_time) {
+            // time expired stop listening for replies, return to main
+            nodes[id].tmp_start_time = FLT_MAX;
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;  
+        }
+        // Time not expired, continue
         if (return_value == 1) {
             // Activity on channel, get packet
             mcu_call(nodes, id, own_function_number, 1, 7);
             return 0;
+        }
+        else {
+            // Nothing heard, try again
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;            
         }
     }
     else {
