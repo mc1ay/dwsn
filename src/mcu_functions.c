@@ -78,7 +78,9 @@ int mcu_function_main(struct Node* nodes,
         }
         else {
             // scan for LFG reply packets
-            printf("Node %d listening for LFG replies\n", id);
+            if (debug) {
+                printf("Node %d listening for LFG replies\n", id);
+            }
             mcu_call(nodes, id, own_function_number, 4, 10);
             return 0;
         }
@@ -161,7 +163,6 @@ int mcu_function_scan_lfg(struct Node* nodes,
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
-                printf("Node %d heard LFG broadcast from node %d on channel %d\n", id, return_value, nodes[id].active_channel);
             }
             // Keep scanning if not at last channel
             if (nodes[id].active_channel == 16) {
@@ -248,7 +249,6 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
         if (return_value >= 0) {
             // If clear channel was found, broadcast LFG on it
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG");
-            printf("Node %d broadcasting LFG on channel %d on next tick\n", id, nodes[id].active_channel);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -265,8 +265,9 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
-        printf("Node %d stopped broadcasting LFG\n", id);
-
+        if (debug) {
+            printf("Node %d stopped broadcasting LFG\n", id);
+        }
         // No error checking for now
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
@@ -452,7 +453,9 @@ int mcu_function_receive(struct Node* nodes,
         }
     }
     if (signals_detected > 1) {
-        printf("Node %d detected collision\n", id);
+        if (debug) {
+            printf("Node %d detected collision\n", id);
+        }
         mcu_return(nodes, id, own_function_number, -1);
         return 0;
     }
@@ -558,15 +561,15 @@ int mcu_function_respond_lfg(struct Node* nodes,
     else if (nodes[id].return_stack->returning_from == 5) {
         // Returning from transmit_message_begin
         // No error checking for now
-        printf("Node %d sent LFG-R on channel %d\n", id, nodes[id].active_channel);
+        if (debug) {
+            printf("Node %d sent LFG-R on channel %d\n", id, nodes[id].active_channel);
+        }
         rs_pop(&nodes[id].return_stack);
         mcu_call(nodes, id, own_function_number, 2, 6);
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
-        printf("Node %d stopped transmitting %d\n", id, nodes[id].active_channel);
-
         // No error checking for now, just check for ACK
         rs_pop(&nodes[id].return_stack);
         // Check for ACK
@@ -624,7 +627,9 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         else {
             // Check for LFG
             if (strcmp(nodes[return_value].send_packet, "LFG-R") == 0) {
-                printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
+                if (debug) {
+                    printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
+                }
                 // Found LFG-R packet, add node to group
                 int available_slot = -1;
                 int i = 0;
@@ -643,7 +648,6 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                 while (i < group_max - 1 && available_slot == -1);
  
                 if (available_slot == -1) {
-                    printf("Group full!\n");
                     // group is full (TO-DO, respond to this)
                     // for now, return to main
                     nodes[id].tmp_start_time = FLT_MAX;
@@ -652,7 +656,9 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                 }
                 else {
                     // add node to group list
-                    printf("node %d added node %d to group\n", id, return_value);
+                    if (debug) {
+                        printf("node %d added node %d to group\n", id, return_value);
+                    }
                     nodes[id].group_list[available_slot] = return_value;
                     // send ACK
                     nodes[id].dest_node = return_value;
@@ -692,7 +698,9 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
     else {
         // Not returning from a call (first entry)
         // set start_time and check for activity on active channel
-        printf("Node %d listening for LFG-R packets on channel %d\n", id, nodes[id].active_channel);
+        if (debug) {
+            printf("Node %d listening for LFG-R packets on channel %d\n", id, nodes[id].active_channel);
+        }
         nodes[id].tmp_start_time = *current_time;
 
         mcu_call(nodes, id, own_function_number, 0, 4);
@@ -822,7 +830,9 @@ int mcu_function_lfgr_get_ack(struct Node* nodes,
                      "ACK LFG-R %d", id);
             if (strcmp(nodes[return_value].send_packet, packet_to_match) == 0) {
                 // Found LFG-R ACK packet, return to caller
-                printf("Node %d received ACK\n", id);
+                if (debug) {
+                    printf("Node %d received ACK\n", id);
+                }
                 mcu_return(nodes, id, own_function_number, 1);
                 return 0;
             }

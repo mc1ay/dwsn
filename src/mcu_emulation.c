@@ -58,11 +58,7 @@ int mcu_run_function(struct Node* nodes,
                      double* current_time,
                      int debug) {
     double busy_time = 0.00;
-    if (id == 100) {
-        printf("CURRENT TIME IS %f RUNNING FUNCTION %d, CHANNEL %d BUSY TIME %f\n", *current_time, nodes[id].current_function, nodes[id].active_channel, nodes[id].busy_remaining);
-        printf("NODE 0 TRANSMIT SET TO: %d, CHANNEL %d\n", nodes[0].transmit_active, nodes[0].active_channel);
-        printf("NODE 1 TRANSMIT SET TO: %d, CHANNEL %d\n", nodes[1].transmit_active, nodes[1].active_channel);
-    }
+
     mcu_update_busy_time(nodes, id, time_resolution, debug);
 
     if (nodes[id].busy_remaining <= 0) {
@@ -163,11 +159,9 @@ int mcu_run_function(struct Node* nodes,
             case 11:
                 if (nodes[id].busy_remaining < 0) {
                     busy_time = (rand() % 100) * time_resolution;  // random busy time 
-                    printf("Set busy time to %f for node %d\n", busy_time, id);
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    printf("Busy time expired for node %d\n", id);
                     mcu_function_random_wait(nodes, node_count, id, time_resolution, debug);
                 }
                 break;
