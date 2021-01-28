@@ -757,7 +757,7 @@ int mcu_function_lfgr_send_ack(struct Node* nodes,
         }
         else if (return_value == 0) {
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), 
-                     "LFG-R ACK %d", nodes[id].dest_node);
+                     "ACK LFG-R %d", nodes[id].dest_node);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -819,7 +819,7 @@ int mcu_function_lfgr_get_ack(struct Node* nodes,
             // Check for LFG ACK
             char packet_to_match[256];
             snprintf(packet_to_match, sizeof(packet_to_match), 
-                     "LFG-R ACK %d", id);
+                     "ACK LFG-R %d", id);
             if (strcmp(nodes[return_value].send_packet, packet_to_match) == 0) {
                 // Found LFG-R ACK packet, return to caller
                 printf("Node %d received ACK\n", id);
