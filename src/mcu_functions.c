@@ -552,7 +552,7 @@ int mcu_function_respond_lfg(struct Node* nodes,
             return 0;
         }
         else if (return_value == 0) {
-            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R");
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R %d", id);
             // add random wait value before transmitting to minimize collisions
             mcu_call(nodes, id, own_function_number, 3, 11);
             return 0;
@@ -626,7 +626,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
         }
         else {
             // Check for LFG
-            if (strcmp(nodes[return_value].send_packet, "LFG-R") == 0) {
+            if (strncmp(nodes[return_value].send_packet, "LFG-R", 5) == 0) {
                 if (debug) {
                     printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
                 }
