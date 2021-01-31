@@ -33,7 +33,7 @@ int clock_tick(struct Node* nodes,
                struct Settings* settings) {
     *current_time += time_resolution; 
     
-    if (debug > 1) {
+    if (settings->debug > 1) {
         printf("Clock tick: %f\n", *current_time);
     }
 
@@ -42,7 +42,7 @@ int clock_tick(struct Node* nodes,
     update_position(nodes, node_count, time_resolution, debug);
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
                current_time, initial_broadcast_nodes, debug);
-    if (output) {
+    if (settings->output) {
         check_write_interval(nodes, node_count, channels, current_time, 
                              time_resolution, write_interval, debug, settings);
     }
@@ -52,8 +52,8 @@ int clock_tick(struct Node* nodes,
 
 int main(int argc, char **argv) {
     // Initialization and defaults
-    struct Settings* settings = malloc(sizeof(settings));
-    struct State* state = malloc(sizeof(state));
+    struct Settings* settings = malloc(sizeof(struct Settings));
+    struct State* state = malloc(sizeof(struct State));
     clock_t t1, t2;
     int node_count = 5;
     int moving_nodes = 0; 
@@ -72,7 +72,6 @@ int main(int argc, char **argv) {
     int random_seed = -1;
     int debug = 0;
     settings->debug = 0;
-    int verbose = 1;
     settings->verbose = 1;
     int output = 0;
     settings->output = 0;
@@ -91,7 +90,6 @@ int main(int argc, char **argv) {
             break;
         case 'v':
             settings->verbose = atoi(optarg);
-            verbose = settings->verbose;
             break;
         case 'c':
             node_count = atoi(optarg);
@@ -141,7 +139,7 @@ int main(int argc, char **argv) {
         default:
             abort ();
     }
-    
+
     // Print message about debug level
     if (settings->debug) {
         printf("Debug level: %d", settings->debug);
@@ -169,7 +167,7 @@ int main(int argc, char **argv) {
     
     if (settings->output) {
         // Make log directory if output option is turned on
-        create_log_dir(verbose, settings);
+        create_log_dir(settings);
         // create transmit_history file and header
         create_transmit_history_file(channels, settings);
     }

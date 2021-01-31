@@ -8,7 +8,7 @@
 
 #include "file_output.h"
 
-int create_log_dir(int verbose, struct Settings* settings) {
+int create_log_dir(struct Settings* settings) {
     struct tm *timenow;
     time_t now = time(NULL);
     timenow = gmtime(&now);
@@ -83,12 +83,13 @@ int check_write_interval(struct Node* nodes,
     char file_path[100];
     char channel_active[channels * 2 + 1];
 
-    if (debug > 1) {
+    if (settings->debug > 1) {
+        printf("debug level: %d\n", settings->debug);
         printf("Checking write interval: ");
     }
     
     if (fmod(*current_time, write_interval) < time_resolution) {
-        if (debug > 1) {
+        if (settings->debug > 1) {
             printf ("Match, writing output\n");
         }
         for (int i = 0; i < node_count; i++) {
@@ -96,17 +97,17 @@ int check_write_interval(struct Node* nodes,
             sprintf(file_path, "%s/node-%d%s", settings->output_dir, i, ".txt");
             FILE *node_data_file;
             
-            if (debug > 1) {
+            if (settings->debug> 1) {
                 printf("Opening %s for append\n", file_path);
             }
             node_data_file  = fopen (file_path, "a");
 
-            if (debug > 1) {
+            if (settings->debug> 1) {
                 printf("Writing data to file\n");
             }
             write_node_data(nodes, node_count, i, *current_time, node_data_file);
 
-            if (debug > 1) {
+            if (settings->debug> 1) {
                 printf("Closing file\n");
             }
             fclose(node_data_file);
@@ -114,18 +115,18 @@ int check_write_interval(struct Node* nodes,
         // Open transmit_history file for writing
         sprintf(file_path, "%s/transmit_history.txt", settings->output_dir);
         FILE *transmit_history_file;
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Opening %s for append\n", file_path);
         }
         transmit_history_file = fopen (file_path, "a");
         // Build line of output for this timeslice
         char buffer[sizeof(channels) * 2 + 100];
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Allocated buffer\n");
         }
         int transmit_count = 0;
         for (int i = 0; i < channels; i++) {
-            if (debug > 1) {
+            if (settings->debug> 1) {
                 printf("Checking channel %d\n", i);
             }
             // Do this for each channel
@@ -151,23 +152,23 @@ int check_write_interval(struct Node* nodes,
             }
         }
         // Write output line to file and close
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Putting line into buffer\n");
         }
         sprintf(buffer, "%f\t%s\n", *current_time, channel_active);
 
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Writing data to file\n");
         }
         fputs(buffer, transmit_history_file);
 
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Closing file\n");
         }
         fclose(transmit_history_file);
     }
     else {
-        if (debug > 1) {
+        if (settings->debug> 1) {
             printf("Not at interval\n");
         }
     }
