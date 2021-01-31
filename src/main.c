@@ -104,6 +104,7 @@ int main(int argc, char **argv) {
     int output = 0;
     settings->output = 0;
     int channels = 16;
+    settings->channels = 16;
     int initial_broadcast_nodes = 2;
     char* output_dir = malloc(sizeof(char) * 50);
     
