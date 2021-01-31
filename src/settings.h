@@ -28,7 +28,7 @@ struct Settings {
     int output;
     int channels;
     int initial_broadcast_nodes;
-    char output_dir[50];
+    char* output_dir;
 };
 
 // Struct for storing program state 

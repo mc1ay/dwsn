@@ -21,10 +21,11 @@ int initialize_nodes(struct Node* nodes,
                        char* output_dir,
                        int group_max,
                        int channels,
-                       int debug) {
+                       int debug,
+                       struct Settings* settings) {
     char file_path[100];
 
-    if (debug) {
+    if (settings->debug) {
         printf("Setting inital node coordinates to %f %f %f\n", start_x, start_y, start_z);
     }
 
@@ -62,9 +63,9 @@ int initialize_nodes(struct Node* nodes,
             nodes[i].group_list[j] = -1;
         }
 
-        if (output) {
-            sprintf(file_path, "%s/node-%d%s", output_dir, i, ".txt");
-            if (debug) {
+        if (settings->output) {
+            sprintf(file_path, "%s/node-%d%s", settings->output_dir, i, ".txt");
+            if (settings->debug) {
                 printf("Creating output file \"%s\"\n", file_path);
             }
             FILE *fp;

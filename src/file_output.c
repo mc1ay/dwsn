@@ -8,13 +8,13 @@
 
 #include "file_output.h"
 
-int create_log_dir(char* output_dir, int verbose) {
+int create_log_dir(char* output_dir, int verbose, struct Settings* settings) {
     struct tm *timenow;
     time_t now = time(NULL);
     timenow = gmtime(&now);
-    strftime(output_dir, sizeof(char) * 50, "output/run/%Y-%m-%d-%H-%M-%S", timenow);
-    if (verbose) {
-        printf("Creating output directory \"%s\": ", output_dir);
+    strftime(settings->output_dir, sizeof(char) * 50, "output/run/%Y-%m-%d-%H-%M-%S", timenow);
+    if (settings->verbose) {
+        printf("Creating output directory \"%s\": ", settings->output_dir);
     }
 
     // Make path for timestamped directory if it doesn't already exist
@@ -27,16 +27,16 @@ int create_log_dir(char* output_dir, int verbose) {
     }
 
     // Make directory just for this run
-    int ret = mkdir(output_dir,0777); 
+    int ret = mkdir(settings->output_dir,0777); 
 
     // check if directory is created or not 
     if (!ret) {
-        if (verbose) {
+        if (settings->verbose) {
             printf("OK\n"); 
         }
     }
     else { 
-        if (verbose) {
+        if (settings->verbose) {
             printf("Unable to create directory, exiting\n"); 
         }
         exit(1); 
@@ -44,9 +44,9 @@ int create_log_dir(char* output_dir, int verbose) {
     return 0; 
 }
 
-int create_transmit_history_file(char* output_dir, int channels) {
+int create_transmit_history_file(char* output_dir, int channels, struct Settings* settings) {
     char file_path[100];
-    sprintf(file_path, "%s/transmit_history.txt", output_dir);
+    sprintf(file_path, "%s/transmit_history.txt", settings->output_dir);
     FILE *transmit_history_file;
     transmit_history_file = fopen (file_path, "a");
     // Build line of output for this timeslice
@@ -78,7 +78,8 @@ int check_write_interval(struct Node* nodes,
                          double time_resolution, 
                          double write_interval,
                          char* output_dir,
-                         int debug) {
+                         int debug,
+                         struct Settings* settings) {
 
     char file_path[100];
     char channel_active[channels * 2 + 1];
@@ -93,7 +94,7 @@ int check_write_interval(struct Node* nodes,
         }
         for (int i = 0; i < node_count; i++) {
             // output node specific info into one file per node
-            sprintf(file_path, "%s/node-%d%s", output_dir, i, ".txt");
+            sprintf(file_path, "%s/node-%d%s", settings->output_dir, i, ".txt");
             FILE *node_data_file;
             
             if (debug > 1) {
@@ -112,7 +113,7 @@ int check_write_interval(struct Node* nodes,
             fclose(node_data_file);
         }
         // Open transmit_history file for writing
-        sprintf(file_path, "%s/transmit_history.txt", output_dir);
+        sprintf(file_path, "%s/transmit_history.txt", settings->output_dir);
         FILE *transmit_history_file;
         if (debug > 1) {
             printf("Opening %s for append\n", file_path);
