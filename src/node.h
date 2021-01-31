@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "settings.h"
 
 #define XYACCELDELTAMAX 0.005
 #define DRAGVARIANCE 0.05

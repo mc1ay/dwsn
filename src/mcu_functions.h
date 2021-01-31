@@ -9,6 +9,7 @@
 #include <string.h>
 #include "node.h"
 #include "mcu_emulation.h"
+#include "settings.h"
 
 #ifndef mcufunctions_H
 #define mcufunctions_H

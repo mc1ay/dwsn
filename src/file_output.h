@@ -6,10 +6,11 @@
  * @date    1/3/2021
 **/
 
-#include "node.h"
 #include <stdlib.h>
 #include <time.h>
 #include <sys/stat.h>
+#include "node.h"
+#include "settings.h"
 
 #ifndef fileoutput_H
 #define fileoutput_H
