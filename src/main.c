@@ -29,6 +29,7 @@ struct Settings {
     double spread_factor;
     double default_power_output;
     double write_interval;
+    int debug;
     int verbose;
     int output;
     int channels;
@@ -36,7 +37,7 @@ struct Settings {
     char output_dir[50];
 };
 
-// Struct for storing program state {
+// Struct for storing program state 
 struct State {
     clock_t start_time;
     int moving_nodes; 
@@ -97,8 +98,11 @@ int main(int argc, char **argv) {
     int group_max = 5;
     int random_seed = -1;
     int debug = 0;
+    settings->debug = 0;
     int verbose = 1;
+    settings->verbose = 1;
     int output = 0;
+    settings->output = 0;
     int channels = 16;
     int initial_broadcast_nodes = 2;
     char* output_dir = malloc(sizeof(char) * 50);
@@ -108,10 +112,12 @@ int main(int argc, char **argv) {
     while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:")) != -1)
     switch (c) {
         case 'd':
-            debug = atoi(optarg);
+            settings->debug = atoi(optarg);
+            debug = settings->debug; 
             break;
         case 'v':
-            verbose = atoi(optarg);
+            settings->verbose = atoi(optarg);
+            verbose = settings->verbose;
             break;
         case 'c':
             node_count = atoi(optarg);
@@ -138,7 +144,8 @@ int main(int argc, char **argv) {
             default_power_output = atof(optarg);
             break;
         case 'o':
-            output = atoi(optarg);
+            settings->output = atoi(optarg);
+            output = settings->output;
             break;
         case 'm':
             group_max = atoi(optarg);
@@ -162,20 +169,20 @@ int main(int argc, char **argv) {
     }
     
     // Print message about debug level
-    if (debug) {
-        printf("Debug level: %d", debug);
+    if (settings->debug) {
+        printf("Debug level: %d", settings->debug);
     }
 
     // Seed random number generator if seed isn't specified
     if (random_seed < 0) {
         srand(time(NULL)); 
-        if (verbose) {
+        if (settings->verbose) {
             printf("Seeded random number generator\n");
         }
     }
 
     // Output parameters
-    if (verbose) {
+    if (settings->verbose) {
         printf("Number of nodes: %d\n", node_count);
         printf("Gravity: %f m/(s^2)\n", gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
@@ -186,7 +193,7 @@ int main(int argc, char **argv) {
         printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
     }
     
-    if (output) {
+    if (settings->output) {
         // Make log directory if output option is turned on
         create_log_dir(output_dir, verbose);
         // create transmit_history file and header
@@ -194,7 +201,7 @@ int main(int argc, char **argv) {
     }
 
     // Get nodes ready
-    if (verbose) {
+    if (settings->verbose) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
@@ -203,14 +210,14 @@ int main(int argc, char **argv) {
                            default_power_output, output, output_dir, 
                            group_max, channels, debug);
     if (ret == 0) {
-        if (verbose) {
+        if (settings->verbose) {
             printf("Initialization OK\n");
         }
         moving_nodes = node_count;
     }
     
     // Run until all nodes reach z = 0;
-    if (verbose) {
+    if (settings->verbose) {
         printf("Running simulation\n");
     }
     t1 = clock();
@@ -232,12 +239,12 @@ int main(int argc, char **argv) {
     double runTime = (double)(t2 - t1) / CLOCKS_PER_SEC;
 
     // Print summary information
-    if (verbose) {
+    if (settings->verbose) {
         printf("Simulation complete\n");
         printf("Simulation time: %f seconds\n", runTime);        
     }
 
-    if (debug) {
+    if (settings->debug) {
         for (int i = 0; i < node_count; i++) {
             printf("Node %d final velocity: %f %f %f m/s, final position: %f %f %f\n", 
                 i, 
@@ -249,7 +256,7 @@ int main(int argc, char **argv) {
                 nodes[i].z_pos);
         }
     }
-    if (verbose) {
+    if (settings->verbose) {
         printf("Final clock time: %f seconds\n", current_time);
     }
     
