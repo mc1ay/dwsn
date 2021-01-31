@@ -8,7 +8,7 @@
 
 #include "file_output.h"
 
-int create_log_dir(char* output_dir, int verbose, struct Settings* settings) {
+int create_log_dir(int verbose, struct Settings* settings) {
     struct tm *timenow;
     time_t now = time(NULL);
     timenow = gmtime(&now);
@@ -44,7 +44,7 @@ int create_log_dir(char* output_dir, int verbose, struct Settings* settings) {
     return 0; 
 }
 
-int create_transmit_history_file(char* output_dir, int channels, struct Settings* settings) {
+int create_transmit_history_file(int channels, struct Settings* settings) {
     char file_path[100];
     sprintf(file_path, "%s/transmit_history.txt", settings->output_dir);
     FILE *transmit_history_file;
@@ -77,7 +77,6 @@ int check_write_interval(struct Node* nodes,
                          double *current_time, 
                          double time_resolution, 
                          double write_interval,
-                         char* output_dir,
                          int debug,
                          struct Settings* settings) {
 

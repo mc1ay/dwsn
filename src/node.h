@@ -60,7 +60,7 @@ struct Node {
 };
 
 int initialize_nodes(struct Node*, int, double, double, double, double, double,
-                                   double, int, char*, int, int, int, struct Settings*); 
+                                   double, int, int, int, int, struct Settings*); 
 int update_acceleration(struct Node*, int, double, double, int);
 int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);

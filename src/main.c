@@ -26,7 +26,6 @@ int clock_tick(struct Node* nodes,
                double spread_factor,
                int debug,
                int output,
-               char* output_dir,
                int write_interval,
                int group_max,
                int initial_broadcast_nodes,
@@ -45,7 +44,7 @@ int clock_tick(struct Node* nodes,
                current_time, initial_broadcast_nodes, debug);
     if (output) {
         check_write_interval(nodes, node_count, channels, current_time, 
-                             time_resolution, write_interval, output_dir, debug, settings);
+                             time_resolution, write_interval, debug, settings);
     }
 
     return 0;
@@ -80,7 +79,6 @@ int main(int argc, char **argv) {
     int channels = 16;
     settings->channels = 16;
     int initial_broadcast_nodes = 2;
-    char* output_dir = malloc(sizeof(char) * 50);
     settings->output_dir = malloc(sizeof(char) * 50);
     
     // get command line switches
@@ -171,9 +169,9 @@ int main(int argc, char **argv) {
     
     if (settings->output) {
         // Make log directory if output option is turned on
-        create_log_dir(output_dir, verbose, settings);
+        create_log_dir(verbose, settings);
         // create transmit_history file and header
-        create_transmit_history_file(output_dir, channels, settings);
+        create_transmit_history_file(channels, settings);
     }
 
     // Get nodes ready
@@ -183,7 +181,7 @@ int main(int argc, char **argv) {
     struct Node nodes[node_count];
     ret = initialize_nodes(nodes, node_count, terminal_velocity, 
                            start_x, start_y, start_z, gravity, 
-                           default_power_output, output, output_dir, 
+                           default_power_output, output, 
                            group_max, channels, debug, settings);
     if (ret == 0) {
         if (settings->verbose) {
@@ -200,7 +198,7 @@ int main(int argc, char **argv) {
 
     while (moving_nodes != 0) {
         clock_tick(nodes, node_count, &current_time, time_resolution, gravity,
-                   spread_factor, debug, output, output_dir, write_interval, 
+                   spread_factor, debug, output, write_interval, 
                    group_max, initial_broadcast_nodes, channels, settings);
         moving_nodes = 0; 
         for (int i = 0; i < node_count; i++) {
