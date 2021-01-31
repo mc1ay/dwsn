@@ -43,13 +43,23 @@ int mcu_function_main(struct Node* nodes,
         else {
             // respond to LFG broadcast from node with strongest signal
             int strongest_node_id = -1;
-            double strongest_signal = -1000000; // using large negative for now (update later)
-
+            double strongest_signal = 1; // using 1 for testing
+            
+            // if debugging, print nodes found
+            if (debug) {
+                printf("After scanning node %d heard broadcasts from: \n", id);
+                for (int i = 0; i < channels; i++) {
+                    if (nodes[id].received_signals[i] > strongest_signal) {
+                        printf("  Node %d (%f dBm)\n", i, nodes[id].received_signals[i]);
+                    }
+                }
+            }
             // find strongest signal broadcasting LFG
             for (int i = 0; i < channels; i++) {
                 if (nodes[id].tmp_lfg_chans[i] != -1) {
                     if (nodes[id].received_signals[i] > strongest_signal) {
                         strongest_node_id = i;
+                        strongest_signal = nodes[id].received_signals[i];
                     }
                 }
             }
@@ -107,7 +117,7 @@ int mcu_function_main(struct Node* nodes,
     else {
         // First time entering main
         // Broadcast from first node, others listen
-        if (id < 1) {
+        if (id < 2) {
             nodes[id].active_channel = 3 * id % 2;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
@@ -260,6 +270,9 @@ int mcu_function_broadcast_lfg(struct Node* nodes,
     }
     else if (nodes[id].return_stack->returning_from == 5) {
         // No error checking for now, just transmit until timer expired
+        if (debug) {
+            printf("Node %d started broadcasting LFG on channel %d\n", id, nodes[id].active_channel);
+        }
         rs_pop(&nodes[id].return_stack);
         return 0;
     }
