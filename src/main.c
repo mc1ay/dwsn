@@ -17,6 +17,33 @@
 #include "mcu_emulation.h"
 #include "file_output.h"
 
+// Struct for storing program settings
+struct Settings {
+    int node_count;
+    double gravity;
+    double start_x;
+    double start_y;
+    double start_z;
+    double time_resolution;
+    double terminal_velocity;
+    double spread_factor;
+    double default_power_output;
+    double write_interval;
+    int verbose;
+    int output;
+    int channels;
+    int initial_broadcast_nodes;
+    char output_dir[50];
+};
+
+// Struct for storing program state {
+struct State {
+    clock_t start_time;
+    int moving_nodes; 
+    int ret;
+    double current_time;
+};
+
 int clock_tick(struct Node* nodes, 
                int node_count, 
                double* current_time, 
@@ -51,6 +78,8 @@ int clock_tick(struct Node* nodes,
 
 int main(int argc, char **argv) {
     // Initialization and defaults
+    struct Settings* settings = malloc(sizeof(settings));
+    struct State* state = malloc(sizeof(state));
     clock_t t1, t2;
     int node_count = 5;
     int moving_nodes = 0; 
