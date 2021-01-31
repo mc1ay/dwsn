@@ -28,6 +28,7 @@ int clock_tick(struct Node* nodes,
                char* output_dir,
                int write_interval,
                int group_max,
+               int initial_broadcast_nodes,
                int channels) {
     *current_time += time_resolution; 
     
@@ -38,7 +39,8 @@ int clock_tick(struct Node* nodes,
     update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
-    update_mcu(nodes, node_count, time_resolution, group_max, channels, current_time, debug);
+    update_mcu(nodes, node_count, time_resolution, group_max, channels, 
+               current_time, initial_broadcast_nodes, debug);
     if (output) {
         check_write_interval(nodes, node_count, channels, current_time, 
                              time_resolution, write_interval, output_dir, debug);
@@ -69,11 +71,12 @@ int main(int argc, char **argv) {
     int verbose = 1;
     int output = 0;
     int channels = 16;
+    int initial_broadcast_nodes = 2;
     char* output_dir = malloc(sizeof(char) * 50);
     
     // get command line switches
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:")) != -1)
     switch (c) {
         case 'd':
             debug = atoi(optarg);
@@ -110,7 +113,10 @@ int main(int argc, char **argv) {
             break;
         case 'm':
             group_max = atoi(optarg);
-            break;    
+            break;
+        case 'b':
+            initial_broadcast_nodes = atoi(optarg);
+            break;      
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
@@ -148,6 +154,7 @@ int main(int argc, char **argv) {
         printf("Terminal velocity: %f meters/second\n", terminal_velocity);
         printf("Spread factor: %f\n", spread_factor);
         printf("Default power output: %f\n", default_power_output);
+        printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
     }
     
     if (output) {
@@ -182,7 +189,7 @@ int main(int argc, char **argv) {
     while (moving_nodes != 0) {
         clock_tick(nodes, node_count, &current_time, time_resolution, gravity,
                    spread_factor, debug, output, output_dir, write_interval, 
-                   group_max, channels);
+                   group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < node_count; i++) {
             if (nodes[i].z_pos > 0) {

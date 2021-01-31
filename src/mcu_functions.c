@@ -30,6 +30,7 @@ int mcu_function_main(struct Node* nodes,
                      int id,
                      int group_max,
                      int channels,
+                     int initial_broadcast_nodes,
                      int debug) {
     int own_function_number = 0;
 
@@ -117,7 +118,7 @@ int mcu_function_main(struct Node* nodes,
     else {
         // First time entering main
         // Broadcast from first node, others listen
-        if (id < 2) {
+        if (id < initial_broadcast_nodes) {
             nodes[id].active_channel = 3 * id % 2;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
