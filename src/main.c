@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     double default_power_output = 400;
     double write_interval = 1.0;
     int group_max = 5;
-    int random_seed = -1;
+    settings.random_seed = -1;
     int debug = 0;
     settings.debug = 0;
     settings.verbose = 1;
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
             spread_factor = atof(optarg);
             break;
         case 'e':
-            random_seed = atoi(optarg);
+            settings.random_seed = atoi(optarg);
             break;
         case 'p':
             default_power_output = atof(optarg);
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
     }
 
     // Seed random number generator if seed isn't specified
-    if (random_seed < 0) {
+    if (settings.random_seed < 0) {
         srand(time(NULL)); 
         if (settings.verbose) {
             printf("Seeded random number generator\n");

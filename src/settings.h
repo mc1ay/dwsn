@@ -14,6 +14,7 @@
 // Struct for storing program settings
 struct Settings {
     int node_count;
+    int random_seed;
     double gravity;
     double start_x;
     double start_y;
