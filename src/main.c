@@ -45,7 +45,7 @@ int clock_tick(struct Node* nodes,
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
                current_time, initial_broadcast_nodes, debug);
     if (settings.output) {
-        check_write_interval(nodes, node_count, channels, current_time, 
+        check_write_interval(nodes, node_count, current_time, 
                              time_resolution, write_interval, debug);
     }
 

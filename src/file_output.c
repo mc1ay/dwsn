@@ -76,14 +76,13 @@ int create_transmit_history_file() {
 
 int check_write_interval(struct Node* nodes,
                          int node_count,
-                         int channels,
                          double *current_time, 
                          double time_resolution, 
                          double write_interval,
                          int debug) {
 
     char file_path[100];
-    char channel_active[channels * 2 + 1];
+    char channel_active[settings.channels * 2 + 1];
 
     if (settings.debug > 1) {
         printf("debug level: %d\n", settings.debug);
@@ -122,12 +121,12 @@ int check_write_interval(struct Node* nodes,
         }
         transmit_history_file = fopen (file_path, "a");
         // Build line of output for this timeslice
-        char buffer[sizeof(channels) * 2 + 100];
+        char buffer[sizeof(settings.channels) * 2 + 100];
         if (settings.debug> 1) {
             printf("Allocated buffer\n");
         }
         int transmit_count = 0;
-        for (int i = 0; i < channels; i++) {
+        for (int i = 0; i < settings.channels; i++) {
             if (settings.debug> 1) {
                 printf("Checking channel %d\n", i);
             }
@@ -148,7 +147,7 @@ int check_write_interval(struct Node* nodes,
                 // If no signals detected, output a "."
                 channel_active[i * 2] = 46;
             } 
-            if (i < channels - 1) {
+            if (i < settings.channels - 1) {
                 // Remove trailing tab or else we get garbage output
                 channel_active[i * 2 + 1] = 9;
             }
