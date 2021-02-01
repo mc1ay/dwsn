@@ -25,7 +25,6 @@ int clock_tick(struct Node* nodes,
                int node_count, 
                double* current_time, 
                double time_resolution, 
-               double gravity,
                double spread_factor,
                int debug,
                int output,
@@ -59,7 +58,7 @@ int main(int argc, char **argv) {
     settings.node_count = 5;
     int moving_nodes = 0; 
     int ret = 0;
-    double gravity = 9.80665;
+    settings.gravity = 9.80665;
     double start_x = 0;
     double start_y = 0;
     double start_z = 30000;
@@ -97,7 +96,7 @@ int main(int argc, char **argv) {
             node_count = settings.node_count;
             break;
         case 'g':
-            gravity = atof(optarg);
+            settings.gravity = atof(optarg);
             break;
         case 'r':
             time_resolution = atof(optarg);
@@ -158,7 +157,7 @@ int main(int argc, char **argv) {
     // Output parameters
     if (settings.verbose) {
         printf("Number of nodes: %d\n", settings.node_count);
-        printf("Gravity: %f m/(s^2)\n", gravity);
+        printf("Gravity: %f m/(s^2)\n", settings.gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
         printf("Starting height: %f meters\n", start_z);
         printf("Terminal velocity: %f meters/second\n", terminal_velocity);
@@ -180,7 +179,7 @@ int main(int argc, char **argv) {
     }
     struct Node nodes[node_count];
     ret = initialize_nodes(nodes, node_count, terminal_velocity, 
-                           start_x, start_y, start_z, gravity, 
+                           start_x, start_y, start_z, 
                            default_power_output, output, 
                            group_max, channels, debug);
     if (ret == 0) {
@@ -197,7 +196,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, time_resolution, gravity,
+        clock_tick(nodes, node_count, &current_time, time_resolution,
                    spread_factor, debug, output, write_interval, 
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 

@@ -59,7 +59,7 @@ struct Node {
     int dest_node;
 };
 
-int initialize_nodes(struct Node*, int, double, double, double, double, double,
+int initialize_nodes(struct Node*, int, double, double, double, double,
                                    double, int, int, int, int); 
 int update_acceleration(struct Node*, int, double, double, int);
 int update_velocity(struct Node*, int, double, int);

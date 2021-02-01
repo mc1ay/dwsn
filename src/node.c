@@ -19,7 +19,6 @@ int initialize_nodes(struct Node* nodes,
                        double start_x,
                        double start_y,
                        double start_z,
-                       double gravity,
                        double power_output,
                        int output,
                        int group_max,
@@ -42,7 +41,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].z_velocity = 0;
         nodes[i].x_acceleration = 0;
         nodes[i].y_acceleration = 0;
-        nodes[i].z_acceleration = gravity;
+        nodes[i].z_acceleration = settings.gravity;
         nodes[i].power_output = power_output;
         nodes[i].transmit_active = 0;
         nodes[i].active_channel = 0;
