@@ -46,17 +46,17 @@ int create_log_dir() {
     return 0; 
 }
 
-int create_transmit_history_file(int channels) {
+int create_transmit_history_file() {
     char file_path[100];
     sprintf(file_path, "%s/transmit_history.txt", settings.output_dir);
     FILE *transmit_history_file;
     transmit_history_file = fopen (file_path, "a");
-    // Build line of output for this timeslice
+    // Build line of output for this clock tick
     char buffer[10];
     sprintf(buffer, "Time\t\t");
     fputs(buffer, transmit_history_file);
-    for (int i = 0; i < channels; i++) {
-        if (i < channels -1) {
+    for (int i = 0; i < settings.channels; i++) {
+        if (i < settings.channels -1) {
             sprintf(buffer, "%d\t", i);
             fputs(buffer, transmit_history_file);
 

@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
     
     if (settings.output) {
         // Make log directory if output option is turned on
-        create_log_dir(settings);
+        create_log_dir();
         // create transmit_history file and header
-        create_transmit_history_file(channels);
+        create_transmit_history_file();
     }
 
     // Get nodes ready
