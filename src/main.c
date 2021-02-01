@@ -45,7 +45,7 @@ int clock_tick(struct Node* nodes,
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
                current_time, initial_broadcast_nodes, debug);
     if (settings.output) {
-        check_write_interval(nodes, node_count, current_time, 
+        check_write_interval(nodes, current_time, 
                              time_resolution, write_interval, debug);
     }
 
@@ -56,6 +56,7 @@ int main(int argc, char **argv) {
     // Initialization and defaults
     clock_t t1, t2;
     int node_count = 5;
+    settings.node_count = 5;
     int moving_nodes = 0; 
     int ret = 0;
     double gravity = 9.80665;
@@ -92,7 +93,8 @@ int main(int argc, char **argv) {
             settings.verbose = atoi(optarg);
             break;
         case 'c':
-            node_count = atoi(optarg);
+            settings.node_count = atoi(optarg);
+            node_count = settings.node_count;
             break;
         case 'g':
             gravity = atof(optarg);
@@ -155,7 +157,7 @@ int main(int argc, char **argv) {
 
     // Output parameters
     if (settings.verbose) {
-        printf("Number of nodes: %d\n", node_count);
+        printf("Number of nodes: %d\n", settings.node_count);
         printf("Gravity: %f m/(s^2)\n", gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
         printf("Starting height: %f meters\n", start_z);
@@ -199,7 +201,7 @@ int main(int argc, char **argv) {
                    spread_factor, debug, output, write_interval, 
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
-        for (int i = 0; i < node_count; i++) {
+        for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {
                 moving_nodes++;
             }
@@ -217,7 +219,7 @@ int main(int argc, char **argv) {
     }
 
     if (settings.debug) {
-        for (int i = 0; i < node_count; i++) {
+        for (int i = 0; i < settings.node_count; i++) {
             printf("Node %d final velocity: %f %f %f m/s, final position: %f %f %f\n", 
                 i, 
                 nodes[i].x_velocity, 

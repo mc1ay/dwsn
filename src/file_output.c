@@ -75,7 +75,6 @@ int create_transmit_history_file() {
 }
 
 int check_write_interval(struct Node* nodes,
-                         int node_count,
                          double *current_time, 
                          double time_resolution, 
                          double write_interval,
@@ -93,7 +92,7 @@ int check_write_interval(struct Node* nodes,
         if (settings.debug > 1) {
             printf ("Match, writing output\n");
         }
-        for (int i = 0; i < node_count; i++) {
+        for (int i = 0; i < settings.node_count; i++) {
             // output node specific info into one file per node
             sprintf(file_path, "%s/node-%d%s", settings.output_dir, i, ".txt");
             FILE *node_data_file;
@@ -106,7 +105,7 @@ int check_write_interval(struct Node* nodes,
             if (settings.debug> 1) {
                 printf("Writing data to file\n");
             }
-            write_node_data(nodes, node_count, i, *current_time, node_data_file);
+            write_node_data(nodes, settings.node_count, i, *current_time, node_data_file);
 
             if (settings.debug> 1) {
                 printf("Closing file\n");
@@ -131,7 +130,7 @@ int check_write_interval(struct Node* nodes,
                 printf("Checking channel %d\n", i);
             }
             // Do this for each channel
-            for (int j = 0; j < node_count; j++) {
+            for (int j = 0; j < settings.node_count; j++) {
                 // Check each node to see if it is transmitting on channel
                 if (nodes[j].active_channel == i && nodes[j].transmit_active == 1) {
                     transmit_count++;
