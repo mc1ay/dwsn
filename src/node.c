@@ -16,9 +16,6 @@ extern struct State state;
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
                        double terminal_velocity,
-                       double start_x,
-                       double start_y,
-                       double start_z,
                        double power_output,
                        int output,
                        int group_max,
@@ -27,15 +24,16 @@ int initialize_nodes(struct Node* nodes,
     char file_path[100];
 
     if (settings.debug) {
-        printf("Setting inital node coordinates to %f %f %f\n", start_x, start_y, start_z);
+        printf("Setting inital node coordinates to %f %f %f\n", settings.start_x,
+                settings.start_y, settings.start_z);
     }
 
     for (int i = 0; i < node_count; i++) {
         nodes[i].terminal_velocity = 
             terminal_velocity + (terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
-        nodes[i].x_pos = start_x;
-        nodes[i].y_pos = start_y;
-        nodes[i].z_pos = start_z;
+        nodes[i].x_pos = settings.start_x;
+        nodes[i].y_pos = settings.start_y;
+        nodes[i].z_pos = settings.start_z;
         nodes[i].x_velocity = 0;
         nodes[i].y_velocity = 0;
         nodes[i].z_velocity = 0;

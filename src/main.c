@@ -59,9 +59,9 @@ int main(int argc, char **argv) {
     int moving_nodes = 0; 
     int ret = 0;
     settings.gravity = 9.80665;
-    double start_x = 0;
-    double start_y = 0;
-    double start_z = 30000;
+    settings.start_x = 0;
+    settings.start_y = 0;
+    settings.start_z = 30000;
     double current_time = 0;
     double time_resolution = 0.001;
     double terminal_velocity = 8.0;
@@ -102,7 +102,7 @@ int main(int argc, char **argv) {
             time_resolution = atof(optarg);
             break;
         case 'z':
-            start_z = atof(optarg);
+            settings.start_z = atof(optarg);
             break;
         case 't':
             terminal_velocity = atof(optarg);
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
         printf("Number of nodes: %d\n", settings.node_count);
         printf("Gravity: %f m/(s^2)\n", settings.gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
-        printf("Starting height: %f meters\n", start_z);
+        printf("Starting height: %f meters\n", settings.start_z);
         printf("Terminal velocity: %f meters/second\n", terminal_velocity);
         printf("Spread factor: %f\n", spread_factor);
         printf("Default power output: %f\n", default_power_output);
@@ -178,8 +178,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, terminal_velocity, 
-                           start_x, start_y, start_z, 
+    ret = initialize_nodes(nodes, node_count, terminal_velocity,  
                            default_power_output, output, 
                            group_max, channels, debug);
     if (ret == 0) {
