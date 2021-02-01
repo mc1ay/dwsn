@@ -18,6 +18,8 @@
 #include "file_output.h"
 #include "settings.h"
 
+struct Settings settings;
+
 int clock_tick(struct Node* nodes, 
                int node_count, 
                double* current_time, 
@@ -29,11 +31,10 @@ int clock_tick(struct Node* nodes,
                int write_interval,
                int group_max,
                int initial_broadcast_nodes,
-               int channels,
-               struct Settings* settings) {
+               int channels) {
     *current_time += time_resolution; 
     
-    if (settings->debug > 1) {
+    if (settings.debug > 1) {
         printf("Clock tick: %f\n", *current_time);
     }
 
@@ -42,9 +43,9 @@ int clock_tick(struct Node* nodes,
     update_position(nodes, node_count, time_resolution, debug);
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
                current_time, initial_broadcast_nodes, debug);
-    if (settings->output) {
+    if (settings.output) {
         check_write_interval(nodes, node_count, channels, current_time, 
-                             time_resolution, write_interval, debug, settings);
+                             time_resolution, write_interval, debug);
     }
 
     return 0;
@@ -52,7 +53,6 @@ int clock_tick(struct Node* nodes,
 
 int main(int argc, char **argv) {
     // Initialization and defaults
-    struct Settings* settings = malloc(sizeof(struct Settings));
     struct State* state = malloc(sizeof(struct State));
     clock_t t1, t2;
     int node_count = 5;
@@ -71,25 +71,25 @@ int main(int argc, char **argv) {
     int group_max = 5;
     int random_seed = -1;
     int debug = 0;
-    settings->debug = 0;
-    settings->verbose = 1;
+    settings.debug = 0;
+    settings.verbose = 1;
     int output = 0;
-    settings->output = 0;
+    settings.output = 0;
     int channels = 16;
-    settings->channels = 16;
+    settings.channels = 16;
     int initial_broadcast_nodes = 2;
-    settings->output_dir = malloc(sizeof(char) * 50);
+    settings.output_dir = malloc(sizeof(char) * 50);
     
     // get command line switches
     int c;
     while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:")) != -1)
     switch (c) {
         case 'd':
-            settings->debug = atoi(optarg);
-            debug = settings->debug; 
+            settings.debug = atoi(optarg);
+            debug = settings.debug; 
             break;
         case 'v':
-            settings->verbose = atoi(optarg);
+            settings.verbose = atoi(optarg);
             break;
         case 'c':
             node_count = atoi(optarg);
@@ -116,8 +116,8 @@ int main(int argc, char **argv) {
             default_power_output = atof(optarg);
             break;
         case 'o':
-            settings->output = atoi(optarg);
-            output = settings->output;
+            settings.output = atoi(optarg);
+            output = settings.output;
             break;
         case 'm':
             group_max = atoi(optarg);
@@ -141,20 +141,20 @@ int main(int argc, char **argv) {
     }
 
     // Print message about debug level
-    if (settings->debug) {
-        printf("Debug level: %d", settings->debug);
+    if (settings.debug) {
+        printf("Debug level: %d", settings.debug);
     }
 
     // Seed random number generator if seed isn't specified
     if (random_seed < 0) {
         srand(time(NULL)); 
-        if (settings->verbose) {
+        if (settings.verbose) {
             printf("Seeded random number generator\n");
         }
     }
 
     // Output parameters
-    if (settings->verbose) {
+    if (settings.verbose) {
         printf("Number of nodes: %d\n", node_count);
         printf("Gravity: %f m/(s^2)\n", gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
@@ -165,31 +165,31 @@ int main(int argc, char **argv) {
         printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
     }
     
-    if (settings->output) {
+    if (settings.output) {
         // Make log directory if output option is turned on
         create_log_dir(settings);
         // create transmit_history file and header
-        create_transmit_history_file(channels, settings);
+        create_transmit_history_file(channels);
     }
 
     // Get nodes ready
-    if (settings->verbose) {
+    if (settings.verbose) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
     ret = initialize_nodes(nodes, node_count, terminal_velocity, 
                            start_x, start_y, start_z, gravity, 
                            default_power_output, output, 
-                           group_max, channels, debug, settings);
+                           group_max, channels, debug);
     if (ret == 0) {
-        if (settings->verbose) {
+        if (settings.verbose) {
             printf("Initialization OK\n");
         }
         moving_nodes = node_count;
     }
     
     // Run until all nodes reach z = 0;
-    if (settings->verbose) {
+    if (settings.verbose) {
         printf("Running simulation\n");
     }
     t1 = clock();
@@ -197,7 +197,7 @@ int main(int argc, char **argv) {
     while (moving_nodes != 0) {
         clock_tick(nodes, node_count, &current_time, time_resolution, gravity,
                    spread_factor, debug, output, write_interval, 
-                   group_max, initial_broadcast_nodes, channels, settings);
+                   group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < node_count; i++) {
             if (nodes[i].z_pos > 0) {
@@ -211,12 +211,12 @@ int main(int argc, char **argv) {
     double runTime = (double)(t2 - t1) / CLOCKS_PER_SEC;
 
     // Print summary information
-    if (settings->verbose) {
+    if (settings.verbose) {
         printf("Simulation complete\n");
         printf("Simulation time: %f seconds\n", runTime);        
     }
 
-    if (settings->debug) {
+    if (settings.debug) {
         for (int i = 0; i < node_count; i++) {
             printf("Node %d final velocity: %f %f %f m/s, final position: %f %f %f\n", 
                 i, 
@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
                 nodes[i].z_pos);
         }
     }
-    if (settings->verbose) {
+    if (settings.verbose) {
         printf("Final clock time: %f seconds\n", current_time);
     }
     

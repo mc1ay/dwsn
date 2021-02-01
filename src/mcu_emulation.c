@@ -9,6 +9,8 @@
 #include "mcu_emulation.h"
 #include "mcu_functions.h"
 
+extern struct Settings settings;
+
 /**
  * Microcontroller node selection
  * Desc: Cycles through all nodes and calls MCU function handler for each

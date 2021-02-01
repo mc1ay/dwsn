@@ -8,6 +8,9 @@
 
 #include "node.h"
 #include "mcu_emulation.h"
+#include "settings.h"
+
+extern struct Settings settings;
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
@@ -20,11 +23,10 @@ int initialize_nodes(struct Node* nodes,
                        int output,
                        int group_max,
                        int channels,
-                       int debug,
-                       struct Settings* settings) {
+                       int debug) {
     char file_path[100];
 
-    if (settings->debug) {
+    if (settings.debug) {
         printf("Setting inital node coordinates to %f %f %f\n", start_x, start_y, start_z);
     }
 
@@ -62,9 +64,9 @@ int initialize_nodes(struct Node* nodes,
             nodes[i].group_list[j] = -1;
         }
 
-        if (settings->output) {
-            sprintf(file_path, "%s/node-%d%s", settings->output_dir, i, ".txt");
-            if (settings->debug) {
+        if (settings.output) {
+            sprintf(file_path, "%s/node-%d%s", settings.output_dir, i, ".txt");
+            if (settings.debug) {
                 printf("Creating output file \"%s\"\n", file_path);
             }
             FILE *fp;

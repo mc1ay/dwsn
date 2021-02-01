@@ -15,8 +15,8 @@
 #ifndef fileoutput_H
 #define fileoutput_H
 
-int check_write_interval(struct Node*, int, int, double*, double, double, int, struct Settings*);
-int create_log_dir(struct Settings*);
-int create_transmit_history_file(int, struct Settings*);
+int check_write_interval(struct Node*, int, int, double*, double, double, int);
+int create_log_dir();
+int create_transmit_history_file(int);
 
 #endif

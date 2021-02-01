@@ -8,6 +8,8 @@
 
 #include "mcu_functions.h"
 
+extern struct Settings settings;
+
 /**
  * Function Number:             0
  * Function Name:               main
