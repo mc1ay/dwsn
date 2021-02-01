@@ -19,6 +19,7 @@
 #include "settings.h"
 
 struct Settings settings;
+struct State state;
 
 int clock_tick(struct Node* nodes, 
                int node_count, 
@@ -53,7 +54,6 @@ int clock_tick(struct Node* nodes,
 
 int main(int argc, char **argv) {
     // Initialization and defaults
-    struct State* state = malloc(sizeof(struct State));
     clock_t t1, t2;
     int node_count = 5;
     int moving_nodes = 0; 

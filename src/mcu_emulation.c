@@ -10,6 +10,7 @@
 #include "mcu_functions.h"
 
 extern struct Settings settings;
+extern struct State state;
 
 /**
  * Microcontroller node selection

@@ -11,6 +11,7 @@
 #include "settings.h"
 
 extern struct Settings settings;
+extern struct State state;
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,

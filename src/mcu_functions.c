@@ -9,6 +9,7 @@
 #include "mcu_functions.h"
 
 extern struct Settings settings;
+extern struct State state;
 
 /**
  * Function Number:             0

@@ -9,6 +9,7 @@
 #include "file_output.h"
 
 extern struct Settings settings;
+extern struct State state;
 
 int create_log_dir() {
     struct tm *timenow;
