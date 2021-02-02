@@ -15,7 +15,6 @@ extern struct State state;
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
-                       double power_output,
                        int output,
                        int group_max,
                        int channels,
@@ -40,7 +39,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].x_acceleration = 0;
         nodes[i].y_acceleration = 0;
         nodes[i].z_acceleration = settings.gravity;
-        nodes[i].power_output = power_output;
+        nodes[i].power_output = settings.default_power_output;
         nodes[i].transmit_active = 0;
         nodes[i].active_channel = 0;
         nodes[i].current_function = 0;
