@@ -22,12 +22,11 @@ int update_mcu(struct Node* nodes,
                int group_max,
                int channels,
                double* current_time,
-               int initial_broadcast_nodes,
-               int debug) {
+               int initial_broadcast_nodes) {
     for (int i = 0; i < node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
         mcu_run_function(nodes, node_count, i, time_resolution, group_max, 
-                         channels, current_time, initial_broadcast_nodes, debug);
+                         channels, current_time, initial_broadcast_nodes);
     }
     return 0;
 }
@@ -60,17 +59,16 @@ int mcu_run_function(struct Node* nodes,
                      int group_max,
                      int channels,
                      double* current_time,
-                     int initial_broadcast_nodes,
-                     int debug) {
+                     int initial_broadcast_nodes) {
     double busy_time = 0.00;
 
-    mcu_update_busy_time(nodes, id, time_resolution, debug);
+    mcu_update_busy_time(nodes, id, time_resolution);
 
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
                 mcu_function_main(nodes, node_count, id, group_max, 
-                                  channels, initial_broadcast_nodes, debug);
+                                  channels, initial_broadcast_nodes);
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {
@@ -78,7 +76,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_scan_lfg(nodes, node_count, id, group_max, channels, debug);
+                    mcu_function_scan_lfg(nodes, node_count, id, group_max, channels);
                 }
                 break;
             case 2:
@@ -87,7 +85,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_broadcast_lfg(nodes, id, group_max, current_time, debug);
+                    mcu_function_broadcast_lfg(nodes, id, group_max, current_time);
                 }
                 break;
             case 3:
@@ -96,7 +94,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_find_clear_channel(nodes, node_count, id, debug);
+                    mcu_function_find_clear_channel(nodes, node_count, id);
                 }
                 break;
             case 4:
@@ -105,7 +103,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_check_channel_busy(nodes, node_count, id, debug);
+                    mcu_function_check_channel_busy(nodes, node_count, id);
                 }
                 break;
             case 5:
@@ -114,7 +112,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_transmit_message_begin(nodes, node_count, id, debug);
+                    mcu_function_transmit_message_begin(nodes, node_count, id);
                 }
                 break;
             case 6:
@@ -123,7 +121,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_transmit_message_complete(nodes, node_count, id, debug);
+                    mcu_function_transmit_message_complete(nodes, node_count, id);
                 }
                 break;
             case 7:
@@ -132,7 +130,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_receive(nodes, node_count, id, debug);
+                    mcu_function_receive(nodes, node_count, id);
                 }
                 break;
             case 8:
@@ -141,7 +139,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_sleep(nodes, node_count, id, debug);
+                    mcu_function_sleep(nodes, node_count, id);
                 }
                 break;
             case 9:
@@ -150,7 +148,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_respond_lfg(nodes, node_count, id, current_time, debug);
+                    mcu_function_respond_lfg(nodes, node_count, id, current_time);
                 }
                 break;
             case 10:
@@ -159,7 +157,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, group_max, debug);
+                    mcu_function_scan_lfg_responses(nodes, node_count, id, current_time, group_max);
                 }
                 break;
             case 11:
@@ -168,7 +166,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_random_wait(nodes, node_count, id, time_resolution, debug);
+                    mcu_function_random_wait(nodes, node_count, id, time_resolution);
                 }
                 break;
             case 12:
@@ -177,7 +175,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_lfgr_send_ack(nodes, node_count, id, debug);
+                    mcu_function_lfgr_send_ack(nodes, node_count, id);
                 }
                 break;
             case 13:
@@ -186,7 +184,7 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_lfgr_get_ack(nodes, node_count, id, current_time, debug);
+                    mcu_function_lfgr_get_ack(nodes, node_count, id, current_time);
                 }
                 break;            
             default:
@@ -199,8 +197,7 @@ int mcu_run_function(struct Node* nodes,
 // update node busy times
 int mcu_update_busy_time(struct Node* nodes,
                          int id,
-                         double time_resolution,
-                         int debug) {
+                         double time_resolution) {
     if (nodes[id].busy_remaining > 0) {
         if (nodes[id].busy_remaining - time_resolution > 0) {
             nodes[id].busy_remaining -= time_resolution;

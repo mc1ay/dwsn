@@ -59,11 +59,11 @@ struct Node {
     int dest_node;
 };
 
-int initialize_nodes(struct Node*, int, int, int, int, int); 
-int update_acceleration(struct Node*, int, double, int);
-int update_velocity(struct Node*, int, double, int);
-int update_position(struct Node*, int, double, int);
-int update_signal(struct Node*, int, int, int);
+int initialize_nodes(struct Node*, int, int, int, int); 
+int update_acceleration(struct Node*, int, double);
+int update_velocity(struct Node*, int, double);
+int update_position(struct Node*, int, double);
+int update_signal(struct Node*, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
 void fs_push(int, int, struct FS_Element**);
 void fs_pop(struct FS_Element**);

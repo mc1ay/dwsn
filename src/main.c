@@ -25,7 +25,6 @@ int clock_tick(struct Node* nodes,
                int node_count, 
                double* current_time, 
                double time_resolution, 
-               int debug,
                int output,
                int write_interval,
                int group_max,
@@ -37,11 +36,11 @@ int clock_tick(struct Node* nodes,
         printf("Clock tick: %f\n", *current_time);
     }
 
-    update_acceleration(nodes, node_count, time_resolution, debug);
-    update_velocity(nodes, node_count, time_resolution, debug);
-    update_position(nodes, node_count, time_resolution, debug);
+    update_acceleration(nodes, node_count, time_resolution);
+    update_velocity(nodes, node_count, time_resolution);
+    update_position(nodes, node_count, time_resolution);
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
-               current_time, initial_broadcast_nodes, debug);
+               current_time, initial_broadcast_nodes);
     if (settings.output) {
         check_write_interval(nodes, current_time, time_resolution, write_interval);
     }
@@ -68,7 +67,6 @@ int main(int argc, char **argv) {
     double write_interval = 1.0;
     int group_max = 5;
     settings.random_seed = -1;
-    int debug = 0;
     settings.debug = 0;
     settings.verbose = 1;
     int output = 0;
@@ -84,7 +82,6 @@ int main(int argc, char **argv) {
     switch (c) {
         case 'd':
             settings.debug = atoi(optarg);
-            debug = settings.debug; 
             break;
         case 'v':
             settings.verbose = atoi(optarg);
@@ -176,8 +173,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, output, 
-                           group_max, channels, debug);
+    ret = initialize_nodes(nodes, node_count, output, group_max, channels);
     if (ret == 0) {
         if (settings.verbose) {
             printf("Initialization OK\n");
@@ -193,7 +189,7 @@ int main(int argc, char **argv) {
 
     while (moving_nodes != 0) {
         clock_tick(nodes, node_count, &current_time, time_resolution,
-                   debug, output, write_interval, 
+                   output, write_interval, 
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {

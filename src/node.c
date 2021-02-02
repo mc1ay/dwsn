@@ -17,8 +17,7 @@ int initialize_nodes(struct Node* nodes,
                        int node_count,
                        int output,
                        int group_max,
-                       int channels,
-                       int debug) {
+                       int channels) {
     char file_path[100];
 
     if (settings.debug) {
@@ -75,7 +74,7 @@ int initialize_nodes(struct Node* nodes,
     return 0;
 }
 
-int update_acceleration(struct Node* nodes, int node_count, double time_resolution, int debug) {
+int update_acceleration(struct Node* nodes, int node_count, double time_resolution) {
     for (int i = 0; i < node_count; i++) {
         // update x/y acceleration
         // use spread_factor as percentage likelyhood that there is some change to acceleration
@@ -83,7 +82,7 @@ int update_acceleration(struct Node* nodes, int node_count, double time_resoluti
             // change x and y by random percentage of max allowed change per second
             double x_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
             double y_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
-            if (debug >= 3) {
+            if (settings.debug >= 3) {
                 printf("Changing x/y accel for node %d by %f,%f\n", i, x_accel_change, y_accel_change);
             }
             nodes[i].x_acceleration += x_accel_change;
@@ -95,7 +94,7 @@ int update_acceleration(struct Node* nodes, int node_count, double time_resoluti
     return 0;
 }
 
-int update_velocity(struct Node* nodes, int node_count, double time_resolution, int debug) {
+int update_velocity(struct Node* nodes, int node_count, double time_resolution) {
     for (int i = 0; i < node_count; i++) {
         // update z velocity
         if (nodes[i].z_pos > 0) { 
@@ -105,7 +104,7 @@ int update_velocity(struct Node* nodes, int node_count, double time_resolution, 
                 }
                 else {
                     nodes[i].z_velocity = nodes[i].terminal_velocity;
-                    if (debug >=2) {
+                    if (settings.debug >=2) {
                         printf("Node %d reached terminal velocity of %f m/s\n", i, nodes[i].terminal_velocity);
                     }
                 }
@@ -118,7 +117,7 @@ int update_velocity(struct Node* nodes, int node_count, double time_resolution, 
     return 0;
 }
 
-int update_position(struct Node* nodes, int node_count, double time_resolution, int debug) {
+int update_position(struct Node* nodes, int node_count, double time_resolution) {
     for (int i = 0; i < node_count; i++) {
         // Update z position
         if (nodes[i].z_pos > 0) { 
@@ -137,7 +136,7 @@ int update_position(struct Node* nodes, int node_count, double time_resolution, 
     return 0;
 }
 
-int update_signal(struct Node* nodes, int id, int target, int debug) {
+int update_signal(struct Node* nodes, int id, int target) {
     // Not taking noise floor into account currently
     // Check distance to other target node and calculate free space loss
     // to get received signal 
