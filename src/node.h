@@ -61,7 +61,7 @@ struct Node {
 
 int initialize_nodes(struct Node*, int, double,
                                    double, int, int, int, int); 
-int update_acceleration(struct Node*, int, double, double, int);
+int update_acceleration(struct Node*, int, double, int);
 int update_velocity(struct Node*, int, double, int);
 int update_position(struct Node*, int, double, int);
 int update_signal(struct Node*, int, int, int);

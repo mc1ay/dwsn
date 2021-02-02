@@ -76,11 +76,11 @@ int initialize_nodes(struct Node* nodes,
     return 0;
 }
 
-int update_acceleration(struct Node* nodes, int node_count, double time_resolution, double spread_factor, int debug) {
+int update_acceleration(struct Node* nodes, int node_count, double time_resolution, int debug) {
     for (int i = 0; i < node_count; i++) {
         // update x/y acceleration
         // use spread_factor as percentage likelyhood that there is some change to acceleration
-        if (rand() % 100 < spread_factor) {
+        if (rand() % 100 < settings.spread_factor) {
             // change x and y by random percentage of max allowed change per second
             double x_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
             double y_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;

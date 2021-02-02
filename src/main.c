@@ -25,7 +25,6 @@ int clock_tick(struct Node* nodes,
                int node_count, 
                double* current_time, 
                double time_resolution, 
-               double spread_factor,
                int debug,
                int output,
                int write_interval,
@@ -38,7 +37,7 @@ int clock_tick(struct Node* nodes,
         printf("Clock tick: %f\n", *current_time);
     }
 
-    update_acceleration(nodes, node_count, time_resolution, spread_factor, debug);
+    update_acceleration(nodes, node_count, time_resolution, debug);
     update_velocity(nodes, node_count, time_resolution, debug);
     update_position(nodes, node_count, time_resolution, debug);
     update_mcu(nodes, node_count, time_resolution, group_max, channels, 
@@ -65,7 +64,7 @@ int main(int argc, char **argv) {
     double current_time = 0;
     double time_resolution = 0.001;
     double terminal_velocity = 8.0;
-    double spread_factor = 20;
+    settings.spread_factor = 20;
     double default_power_output = 400;
     double write_interval = 1.0;
     int group_max = 5;
@@ -108,7 +107,7 @@ int main(int argc, char **argv) {
             terminal_velocity = atof(optarg);
             break;
         case 's': 
-            spread_factor = atof(optarg);
+            settings.spread_factor = atof(optarg);
             break;
         case 'e':
             settings.random_seed = atoi(optarg);
@@ -161,7 +160,7 @@ int main(int argc, char **argv) {
         printf("Time resolution: %f secs/tick\n", time_resolution); 
         printf("Starting height: %f meters\n", settings.start_z);
         printf("Terminal velocity: %f meters/second\n", terminal_velocity);
-        printf("Spread factor: %f\n", spread_factor);
+        printf("Spread factor: %f\n", settings.spread_factor);
         printf("Default power output: %f\n", default_power_output);
         printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
     }
@@ -196,7 +195,7 @@ int main(int argc, char **argv) {
 
     while (moving_nodes != 0) {
         clock_tick(nodes, node_count, &current_time, time_resolution,
-                   spread_factor, debug, output, write_interval, 
+                   debug, output, write_interval, 
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
