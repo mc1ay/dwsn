@@ -15,7 +15,6 @@ extern struct State state;
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
-                       double terminal_velocity,
                        double power_output,
                        int output,
                        int group_max,
@@ -30,7 +29,8 @@ int initialize_nodes(struct Node* nodes,
 
     for (int i = 0; i < node_count; i++) {
         nodes[i].terminal_velocity = 
-            terminal_velocity + (terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
+            settings.terminal_velocity + 
+           (settings.terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
         nodes[i].x_pos = settings.start_x;
         nodes[i].y_pos = settings.start_y;
         nodes[i].z_pos = settings.start_z;

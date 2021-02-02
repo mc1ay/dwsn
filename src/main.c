@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     settings.start_z = 30000;
     double current_time = 0;
     double time_resolution = 0.001;
-    double terminal_velocity = 8.0;
+    settings.terminal_velocity = 8.0;
     settings.spread_factor = 20;
     double default_power_output = 400;
     double write_interval = 1.0;
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
             settings.start_z = atof(optarg);
             break;
         case 't':
-            terminal_velocity = atof(optarg);
+            settings.terminal_velocity = atof(optarg);
             break;
         case 's': 
             settings.spread_factor = atof(optarg);
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
         printf("Gravity: %f m/(s^2)\n", settings.gravity);
         printf("Time resolution: %f secs/tick\n", time_resolution); 
         printf("Starting height: %f meters\n", settings.start_z);
-        printf("Terminal velocity: %f meters/second\n", terminal_velocity);
+        printf("Terminal velocity: %f meters/second\n", settings.terminal_velocity);
         printf("Spread factor: %f\n", settings.spread_factor);
         printf("Default power output: %f\n", default_power_output);
         printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
@@ -177,8 +177,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, terminal_velocity,  
-                           default_power_output, output, 
+    ret = initialize_nodes(nodes, node_count, default_power_output, output, 
                            group_max, channels, debug);
     if (ret == 0) {
         if (settings.verbose) {
