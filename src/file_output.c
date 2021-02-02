@@ -77,8 +77,7 @@ int create_transmit_history_file() {
 int check_write_interval(struct Node* nodes,
                          double *current_time, 
                          double time_resolution, 
-                         double write_interval,
-                         int debug) {
+                         double write_interval) {
 
     char file_path[100];
     char channel_active[settings.channels * 2 + 1];
