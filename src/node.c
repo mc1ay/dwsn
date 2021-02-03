@@ -15,7 +15,6 @@ extern struct State state;
 
 int initialize_nodes(struct Node* nodes, 
                        int node_count,
-                       int output,
                        int group_max,
                        int channels) {
     char file_path[100];

@@ -170,7 +170,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, output, group_max, channels);
+    ret = initialize_nodes(nodes, node_count, group_max, channels);
     if (ret == 0) {
         if (settings.verbose) {
             printf("Initialization OK\n");
