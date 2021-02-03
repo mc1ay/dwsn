@@ -168,7 +168,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
             }
             // Keep scanning if not at last channel
-            if (nodes[id].active_channel == 16) {
+            if (nodes[id].active_channel == settings.channels) {
             // If at last channel, return to main
                 nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, return_value);
@@ -192,7 +192,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         }
         else {
             // Didn't hear anything, go to next channel
-            if (nodes[id].active_channel == 16) {
+            if (nodes[id].active_channel == settings.channels) {
                 // If at last channel, return to main
                 nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, return_value);
