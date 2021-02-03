@@ -101,7 +101,7 @@ int check_write_interval(struct Node* nodes, double *current_time) {
             if (settings.debug> 1) {
                 printf("Writing data to file\n");
             }
-            write_node_data(nodes, settings.node_count, i, *current_time, node_data_file);
+            write_node_data(nodes, i, *current_time, node_data_file);
 
             if (settings.debug> 1) {
                 printf("Closing file\n");

@@ -28,7 +28,7 @@ extern struct State state;
 
  * Function Returns:            nothing
 **/
-int mcu_function_main(struct Node* nodes, int node_count, int id) {
+int mcu_function_main(struct Node* nodes, int id) {
     int own_function_number = 0;
 
     if (nodes[id].return_stack->returning_from == 1) {
@@ -142,7 +142,7 @@ int mcu_function_main(struct Node* nodes, int node_count, int id) {
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
 **/
-int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id) {
+int mcu_function_scan_lfg(struct Node* nodes, int id) {
     int own_function_number = 1;
 
     if (nodes[id].return_stack->returning_from == 7) {
@@ -310,9 +310,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id, double* current_time)
  * Function Returns:            -1 - no clear channels
  *                              channel - first available free channel
 **/
-int mcu_function_find_clear_channel(struct Node* nodes,
-                                    int node_count,
-                                    int id) {
+int mcu_function_find_clear_channel(struct Node* nodes, int id) {
     int own_function_number = 3;
 
     // check for return
@@ -357,12 +355,10 @@ int mcu_function_find_clear_channel(struct Node* nodes,
  * Function Returns:            0 - channel free
  *                              1 - channel busy
 **/
-int mcu_function_check_channel_busy(struct Node* nodes,
-                                    int node_count,
-                                    int id) {
+int mcu_function_check_channel_busy(struct Node* nodes, int id) {
     int own_function_number = 4;
     
-    for (int i = 0; i < node_count; i++) {
+    for (int i = 0; i < settings.node_count; i++) {
         if (i != id) {                  // don't check own id
             if (nodes[id].active_channel == nodes[i].active_channel && nodes[i].transmit_active == 1) {
                 mcu_return(nodes, id, own_function_number, 1);
@@ -384,9 +380,7 @@ int mcu_function_check_channel_busy(struct Node* nodes,
  * Function Returns:            0 - transmit error
  *                              1 - transmit successful
 **/
-int mcu_function_transmit_message_begin(struct Node* nodes,
-                                           int node_count,
-                                           int id) {
+int mcu_function_transmit_message_begin(struct Node* nodes, int id) {
     int own_function_number = 5;
     nodes[id].transmit_active = 1;
     mcu_return(nodes, id, own_function_number, 1);
@@ -403,9 +397,7 @@ int mcu_function_transmit_message_begin(struct Node* nodes,
  * Function Returns:            0 - transmit error
  *                              1 - transmit successful
 **/
-int mcu_function_transmit_message_complete(struct Node* nodes,
-                                           int node_count,
-                                           int id) {
+int mcu_function_transmit_message_complete(struct Node* nodes, int id) {
     int own_function_number = 6;
     
     // Turn off transmit
@@ -431,14 +423,12 @@ int mcu_function_transmit_message_complete(struct Node* nodes,
  *                             -1 - collision
  *                             ID - received data from node <id>
 **/
-int mcu_function_receive(struct Node* nodes,
-                         int node_count,
-                         int id) {
+int mcu_function_receive(struct Node* nodes, int id) {
     int own_function_number = 7;
     int signals_detected = 0;
     int transmitting_node = -1;
 
-    for (int i = 0; i < node_count; i++) {
+    for (int i = 0; i < settings.node_count; i++) {
         if (i != id) {          // Don't check own ID
             if (nodes[i].transmit_active && nodes[id].active_channel == nodes[i].active_channel) {
                 update_signal(nodes, id, i);
@@ -473,7 +463,7 @@ int mcu_function_receive(struct Node* nodes,
 
  * Function Returns:            0 - void
 **/
-int mcu_function_sleep(struct Node* nodes, int node_count, int id) {
+int mcu_function_sleep(struct Node* nodes, int id) {
     int own_function_number = 8;
     mcu_return(nodes, id, own_function_number, 0);
     return 0;    
@@ -505,10 +495,7 @@ int mcu_function_sleep(struct Node* nodes, int node_count, int id) {
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
-int mcu_function_respond_lfg(struct Node* nodes,
-                                           int node_count,
-                                           int id,
-                                           double* current_time) {
+int mcu_function_respond_lfg(struct Node* nodes, int id, double* current_time) {
     int own_function_number = 9;
     
     if (nodes[id].return_stack->returning_from == 13) {
@@ -584,7 +571,7 @@ int mcu_function_respond_lfg(struct Node* nodes,
 
  * Function Returns:            0 - void
 **/
-int mcu_function_scan_lfg_responses(struct Node* nodes, int node_count, int id, double* current_time) {
+int mcu_function_scan_lfg_responses(struct Node* nodes, int id, double* current_time) {
     int own_function_number = 10;
 
     if (nodes[id].return_stack->returning_from == 12) {
@@ -704,7 +691,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int node_count, int id, 
 
  * Function Returns:            0 - void
 **/
-int mcu_function_random_wait(struct Node* nodes, int node_count, int id) {    
+int mcu_function_random_wait(struct Node* nodes, int id) {    
     int own_function_number = 11;
     // for now this does nothing, busy_time is set in mcu_run_function()
     mcu_return(nodes, id, own_function_number, 0);
@@ -731,7 +718,7 @@ int mcu_function_random_wait(struct Node* nodes, int node_count, int id) {
 
  * Function Returns:            0 (update later)
 **/
-int mcu_function_lfgr_send_ack(struct Node* nodes, int node_count, int id) {    
+int mcu_function_lfgr_send_ack(struct Node* nodes, int id) {    
     int own_function_number = 12;
 
     if (nodes[id].return_stack->returning_from == 4) {
@@ -781,10 +768,7 @@ int mcu_function_lfgr_send_ack(struct Node* nodes, int node_count, int id) {
  * Function Returns:            1 - ACK received
  *                              0 - Nothing heard
 **/
-int mcu_function_lfgr_get_ack(struct Node* nodes,
-                                    int node_count,
-                                    int id,
-                                    double* current_time) {    
+int mcu_function_lfgr_get_ack(struct Node* nodes, int id, double* current_time) {    
     int own_function_number = 13;
 
     if (nodes[id].return_stack->returning_from == 7) {

@@ -21,17 +21,17 @@
 struct Settings settings;
 struct State state;
 
-int clock_tick(struct Node* nodes, int node_count, double* current_time) {
+int clock_tick(struct Node* nodes, double* current_time) {
     *current_time += settings.time_resolution; 
     
     if (settings.debug > 1) {
         printf("Clock tick: %f\n", *current_time);
     }
 
-    update_acceleration(nodes, node_count);
-    update_velocity(nodes, node_count);
-    update_position(nodes, node_count);
-    update_mcu(nodes, node_count, current_time);
+    update_acceleration(nodes);
+    update_velocity(nodes);
+    update_position(nodes);
+    update_mcu(nodes, current_time);
     if (settings.output) {
         check_write_interval(nodes, current_time);
     }
@@ -42,7 +42,6 @@ int clock_tick(struct Node* nodes, int node_count, double* current_time) {
 int main(int argc, char **argv) {
     // Initialization and defaults
     clock_t t1, t2;
-    int node_count = 5;
     settings.node_count = 5;
     int moving_nodes = 0; 
     int ret = 0;
@@ -77,7 +76,6 @@ int main(int argc, char **argv) {
             break;
         case 'c':
             settings.node_count = atoi(optarg);
-            node_count = settings.node_count;
             break;
         case 'g':
             settings.gravity = atof(optarg);
@@ -160,13 +158,13 @@ int main(int argc, char **argv) {
     if (settings.verbose) {
         printf("Initializing nodes\n");
     }
-    struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count);
+    struct Node nodes[settings.node_count];
+    ret = initialize_nodes(nodes);
     if (ret == 0) {
         if (settings.verbose) {
             printf("Initialization OK\n");
         }
-        moving_nodes = node_count;
+        moving_nodes = settings.node_count;
     }
     
     // Run until all nodes reach z = 0;
@@ -176,7 +174,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time);
+        clock_tick(nodes, &current_time);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {

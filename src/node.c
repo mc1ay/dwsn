@@ -13,7 +13,7 @@
 extern struct Settings settings;
 extern struct State state;
 
-int initialize_nodes(struct Node* nodes, int node_count) {
+int initialize_nodes(struct Node* nodes) {
     char file_path[100];
 
     if (settings.debug) {
@@ -21,7 +21,7 @@ int initialize_nodes(struct Node* nodes, int node_count) {
                 settings.start_y, settings.start_z);
     }
 
-    for (int i = 0; i < node_count; i++) {
+    for (int i = 0; i < settings.node_count; i++) {
         nodes[i].terminal_velocity = 
             settings.terminal_velocity + 
            (settings.terminal_velocity * DRAGVARIANCE * (rand() % 201 - 100.0) / 100);
@@ -39,7 +39,7 @@ int initialize_nodes(struct Node* nodes, int node_count) {
         nodes[i].active_channel = 0;
         nodes[i].current_function = 0;
         nodes[i].busy_remaining = -1;
-        nodes[i].received_signals = malloc(sizeof(double) * node_count);
+        nodes[i].received_signals = malloc(sizeof(double) * settings.node_count);
         nodes[i].group_list = malloc(sizeof(int) * settings.group_max);
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
         nodes[i].return_stack = malloc(sizeof(struct RS_Element));
@@ -47,7 +47,7 @@ int initialize_nodes(struct Node* nodes, int node_count) {
         nodes[i].tmp_start_time = FLT_MAX;
 
         // Set all received signals to 0 initially
-        for (int j = 0; j < node_count; j++) {
+        for (int j = 0; j < settings.node_count; j++) {
             nodes[i].received_signals[j] = 0;
         }
         
@@ -63,15 +63,15 @@ int initialize_nodes(struct Node* nodes, int node_count) {
             }
             FILE *fp;
             fp  = fopen (file_path, "w");
-            write_node_data(nodes, node_count, i, 0.0, fp);
+            write_node_data(nodes, i, 0.0, fp);
             fclose(fp);
         }
     }
     return 0;
 }
 
-int update_acceleration(struct Node* nodes, int node_count) {
-    for (int i = 0; i < node_count; i++) {
+int update_acceleration(struct Node* nodes) {
+    for (int i = 0; i < settings.node_count; i++) {
         // update x/y acceleration
         // use spread_factor as percentage likelyhood that there is some change to acceleration
         if (rand() % 100 < settings.spread_factor) {
@@ -92,8 +92,8 @@ int update_acceleration(struct Node* nodes, int node_count) {
     return 0;
 }
 
-int update_velocity(struct Node* nodes, int node_count) {
-    for (int i = 0; i < node_count; i++) {
+int update_velocity(struct Node* nodes) {
+    for (int i = 0; i < settings.node_count; i++) {
         // update z velocity
         if (nodes[i].z_pos > 0) { 
             if (nodes[i].z_velocity < nodes[i].terminal_velocity) {
@@ -117,8 +117,8 @@ int update_velocity(struct Node* nodes, int node_count) {
     return 0;
 }
 
-int update_position(struct Node* nodes, int node_count) {
-    for (int i = 0; i < node_count; i++) {
+int update_position(struct Node* nodes) {
+    for (int i = 0; i < settings.node_count; i++) {
         // Update z position
         if (nodes[i].z_pos > 0) { 
             if (nodes[i].z_pos - (nodes[i].z_velocity * settings.time_resolution) > 0) { 
@@ -150,8 +150,8 @@ int update_signal(struct Node* nodes, int id, int target) {
     return 0;
 }
 
-int write_node_data(struct Node* nodes, int node_count, int id, double current_time, FILE *fp) {
-    char buffer[100 + node_count * 15];
+int write_node_data(struct Node* nodes, int id, double current_time, FILE *fp) {
+    char buffer[100 + settings.node_count * 15];
     sprintf(buffer, "%f\t%i\t%i\t%f\t%f\t%f ", current_time, 
                                           nodes[id].active_channel,
                                           nodes[id].current_function, 
@@ -159,8 +159,8 @@ int write_node_data(struct Node* nodes, int node_count, int id, double current_t
                                           nodes[id].y_pos, 
                                           nodes[id].z_pos);
     fputs(buffer, fp);
-    for (int i = 0; i < node_count; i++) {
-        if (i < node_count - 1) {
+    for (int i = 0; i < settings.node_count; i++) {
+        if (i < settings.node_count - 1) {
             sprintf(buffer, "%f\t", nodes[id].received_signals[i]);
         }
         else {
