@@ -41,4 +41,7 @@ struct State {
     double current_time;
 };
 
+void set_program_defaults();
+void get_switches(int argc, char **argv);
+
 #endif
