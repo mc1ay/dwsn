@@ -25,7 +25,6 @@ int clock_tick(struct Node* nodes,
                int node_count, 
                double* current_time, 
                int output,
-               int write_interval,
                int group_max,
                int initial_broadcast_nodes,
                int channels) {
@@ -40,7 +39,7 @@ int clock_tick(struct Node* nodes,
     update_position(nodes, node_count);
     update_mcu(nodes, node_count, group_max, channels, current_time, initial_broadcast_nodes);
     if (settings.output) {
-        check_write_interval(nodes, current_time, write_interval);
+        check_write_interval(nodes, current_time);
     }
 
     return 0;
@@ -62,7 +61,7 @@ int main(int argc, char **argv) {
     settings.terminal_velocity = 8.0;
     settings.spread_factor = 20;
     settings.default_power_output = 400;
-    double write_interval = 1.0;
+    settings.write_interval = 1.0;
     int group_max = 5;
     settings.random_seed = -1;
     settings.debug = 0;
@@ -186,8 +185,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time,
-                   output, write_interval, 
+        clock_tick(nodes, node_count, &current_time, output,  
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
