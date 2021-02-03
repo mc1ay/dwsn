@@ -28,11 +28,7 @@ extern struct State state;
 
  * Function Returns:            nothing
 **/
-int mcu_function_main(struct Node* nodes,
-                     int node_count,
-                     int id,
-                     int group_max,
-                     int channels) {
+int mcu_function_main(struct Node* nodes, int node_count, int id, int group_max) {
     int own_function_number = 0;
 
     if (nodes[id].return_stack->returning_from == 1) {
@@ -50,14 +46,14 @@ int mcu_function_main(struct Node* nodes,
             // if debugging, print nodes found
             if (settings.debug) {
                 printf("After scanning node %d heard broadcasts from: \n", id);
-                for (int i = 0; i < channels; i++) {
+                for (int i = 0; i < settings.channels; i++) {
                     if (nodes[id].received_signals[i] > strongest_signal) {
                         printf("  Node %d (%f dBm)\n", i, nodes[id].received_signals[i]);
                     }
                 }
             }
             // find strongest signal broadcasting LFG
-            for (int i = 0; i < channels; i++) {
+            for (int i = 0; i < settings.channels; i++) {
                 if (nodes[id].tmp_lfg_chans[i] != -1) {
                     if (nodes[id].received_signals[i] > strongest_signal) {
                         strongest_node_id = i;
@@ -146,11 +142,7 @@ int mcu_function_main(struct Node* nodes,
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
 **/
-int mcu_function_scan_lfg(struct Node* nodes,
-                          int node_count,
-                          int id,
-                          int group_max,
-                          int channels) {
+int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, int group_max) {
     int own_function_number = 1;
 
     if (nodes[id].return_stack->returning_from == 7) {
@@ -218,7 +210,7 @@ int mcu_function_scan_lfg(struct Node* nodes,
         // Start at first channel
         nodes[id].active_channel = 0;
         // Initialize LFG tmp array before scanning
-        for (int i = 0; i < channels; i++) {
+        for (int i = 0; i < settings.channels; i++) {
             nodes[id].tmp_lfg_chans[i] = -1;
         }
         // Check if first channel is busy
@@ -333,7 +325,7 @@ int mcu_function_find_clear_channel(struct Node* nodes,
         rs_pop(&nodes[id].return_stack);
         if (return_value == 1) {
             // Channel was busy, go to next, unless at last channel
-            if (nodes[id].active_channel == 16) {
+            if (nodes[id].active_channel == settings.channels) {
                 nodes[id].active_channel = 0;
                 mcu_return(nodes, id, own_function_number, -1);
                 return 0;

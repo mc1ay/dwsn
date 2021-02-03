@@ -16,14 +16,10 @@ extern struct State state;
  * Microcontroller node selection
  * Desc: Cycles through all nodes and calls MCU function handler for each
 **/
-int update_mcu(struct Node* nodes,
-               int node_count,
-               int group_max,
-               int channels,
-               double* current_time) {
+int update_mcu(struct Node* nodes, int node_count, int group_max, double* current_time) {
     for (int i = 0; i < node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
-        mcu_run_function(nodes, node_count, i, group_max, channels, current_time);
+        mcu_run_function(nodes, node_count, i, group_max, current_time);
     }
     return 0;
 }
@@ -53,7 +49,6 @@ int mcu_run_function(struct Node* nodes,
                      int node_count,
                      int id,
                      int group_max,
-                     int channels,
                      double* current_time) {
     double busy_time = 0.00;
 
@@ -62,7 +57,7 @@ int mcu_run_function(struct Node* nodes,
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
-                mcu_function_main(nodes, node_count, id, group_max, channels);
+                mcu_function_main(nodes, node_count, id, group_max);
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {
@@ -70,12 +65,12 @@ int mcu_run_function(struct Node* nodes,
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_scan_lfg(nodes, node_count, id, group_max, channels);
+                    mcu_function_scan_lfg(nodes, node_count, id, group_max);
                 }
                 break;
             case 2:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = channels * id * settings.time_resolution;       // add wait to avoid channel overlap
+                    busy_time = settings.channels * id * settings.time_resolution;       // add wait to avoid channel overlap
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {

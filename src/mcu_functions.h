@@ -14,8 +14,8 @@
 #ifndef mcufunctions_H
 #define mcufunctions_H
 
-int mcu_function_main(struct Node*, int, int, int, int);
-int mcu_function_scan_lfg(struct Node*, int, int, int, int);
+int mcu_function_main(struct Node*, int, int, int);
+int mcu_function_scan_lfg(struct Node*, int, int, int);
 int mcu_function_broadcast_lfg(struct Node*, int, int, double*);
 int mcu_function_find_clear_channel(struct Node*, int, int);
 int mcu_function_check_channel_busy(struct Node*, int, int);

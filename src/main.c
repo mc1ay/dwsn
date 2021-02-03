@@ -24,8 +24,7 @@ struct State state;
 int clock_tick(struct Node* nodes, 
                int node_count, 
                double* current_time, 
-               int group_max,
-               int channels) {
+               int group_max) {
     *current_time += settings.time_resolution; 
     
     if (settings.debug > 1) {
@@ -35,7 +34,7 @@ int clock_tick(struct Node* nodes,
     update_acceleration(nodes, node_count);
     update_velocity(nodes, node_count);
     update_position(nodes, node_count);
-    update_mcu(nodes, node_count, group_max, channels, current_time);
+    update_mcu(nodes, node_count, group_max, current_time);
     if (settings.output) {
         check_write_interval(nodes, current_time);
     }
@@ -65,7 +64,6 @@ int main(int argc, char **argv) {
     settings.debug = 0;
     settings.verbose = 1;
     settings.output = 0;
-    int channels = 16;
     settings.channels = 16;
     settings.initial_broadcast_nodes = 2;
     settings.output_dir = malloc(sizeof(char) * 50);
@@ -166,7 +164,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, group_max, channels);
+    ret = initialize_nodes(nodes, node_count, group_max);
     if (ret == 0) {
         if (settings.verbose) {
             printf("Initialization OK\n");
@@ -181,7 +179,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, group_max, channels);
+        clock_tick(nodes, node_count, &current_time, group_max);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {

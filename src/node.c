@@ -13,10 +13,7 @@
 extern struct Settings settings;
 extern struct State state;
 
-int initialize_nodes(struct Node* nodes, 
-                       int node_count,
-                       int group_max,
-                       int channels) {
+int initialize_nodes(struct Node* nodes, int node_count, int group_max) {
     char file_path[100];
 
     if (settings.debug) {
@@ -46,7 +43,7 @@ int initialize_nodes(struct Node* nodes,
         nodes[i].group_list = malloc(sizeof(int) * group_max);
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
         nodes[i].return_stack = malloc(sizeof(struct RS_Element));
-        nodes[i].tmp_lfg_chans = malloc(sizeof(int) * channels);
+        nodes[i].tmp_lfg_chans = malloc(sizeof(int) * settings.channels);
         nodes[i].tmp_start_time = FLT_MAX;
 
         // Set all received signals to 0 initially
