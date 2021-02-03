@@ -24,25 +24,23 @@ struct State state;
 int clock_tick(struct Node* nodes, 
                int node_count, 
                double* current_time, 
-               double time_resolution, 
                int output,
                int write_interval,
                int group_max,
                int initial_broadcast_nodes,
                int channels) {
-    *current_time += time_resolution; 
+    *current_time += settings.time_resolution; 
     
     if (settings.debug > 1) {
         printf("Clock tick: %f\n", *current_time);
     }
 
-    update_acceleration(nodes, node_count, time_resolution);
-    update_velocity(nodes, node_count, time_resolution);
-    update_position(nodes, node_count, time_resolution);
-    update_mcu(nodes, node_count, time_resolution, group_max, channels, 
-               current_time, initial_broadcast_nodes);
+    update_acceleration(nodes, node_count);
+    update_velocity(nodes, node_count);
+    update_position(nodes, node_count);
+    update_mcu(nodes, node_count, group_max, channels, current_time, initial_broadcast_nodes);
     if (settings.output) {
-        check_write_interval(nodes, current_time, time_resolution, write_interval);
+        check_write_interval(nodes, current_time, write_interval);
     }
 
     return 0;
@@ -60,7 +58,7 @@ int main(int argc, char **argv) {
     settings.start_y = 0;
     settings.start_z = 30000;
     double current_time = 0;
-    double time_resolution = 0.001;
+    settings.time_resolution = 0.001;
     settings.terminal_velocity = 8.0;
     settings.spread_factor = 20;
     settings.default_power_output = 400;
@@ -94,7 +92,7 @@ int main(int argc, char **argv) {
             settings.gravity = atof(optarg);
             break;
         case 'r':
-            time_resolution = atof(optarg);
+            settings.time_resolution = atof(optarg);
             break;
         case 'z':
             settings.start_z = atof(optarg);
@@ -153,7 +151,7 @@ int main(int argc, char **argv) {
     if (settings.verbose) {
         printf("Number of nodes: %d\n", settings.node_count);
         printf("Gravity: %f m/(s^2)\n", settings.gravity);
-        printf("Time resolution: %f secs/tick\n", time_resolution); 
+        printf("Time resolution: %f secs/tick\n", settings.time_resolution); 
         printf("Starting height: %f meters\n", settings.start_z);
         printf("Terminal velocity: %f meters/second\n", settings.terminal_velocity);
         printf("Spread factor: %f\n", settings.spread_factor);
@@ -188,7 +186,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, time_resolution,
+        clock_tick(nodes, node_count, &current_time,
                    output, write_interval, 
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 

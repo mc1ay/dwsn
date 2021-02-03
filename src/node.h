@@ -60,9 +60,9 @@ struct Node {
 };
 
 int initialize_nodes(struct Node*, int, int, int, int); 
-int update_acceleration(struct Node*, int, double);
-int update_velocity(struct Node*, int, double);
-int update_position(struct Node*, int, double);
+int update_acceleration(struct Node*, int);
+int update_velocity(struct Node*, int);
+int update_position(struct Node*, int);
 int update_signal(struct Node*, int, int);
 int write_node_data(struct Node*, int, int, double, FILE*);
 void fs_push(int, int, struct FS_Element**);

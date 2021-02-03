@@ -18,14 +18,13 @@ extern struct State state;
 **/
 int update_mcu(struct Node* nodes,
                int node_count,
-               double time_resolution,
                int group_max,
                int channels,
                double* current_time,
                int initial_broadcast_nodes) {
     for (int i = 0; i < node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
-        mcu_run_function(nodes, node_count, i, time_resolution, group_max, 
+        mcu_run_function(nodes, node_count, i, group_max, 
                          channels, current_time, initial_broadcast_nodes);
     }
     return 0;
@@ -55,14 +54,13 @@ int update_mcu(struct Node* nodes,
 int mcu_run_function(struct Node* nodes,
                      int node_count,
                      int id,
-                     double time_resolution,
                      int group_max,
                      int channels,
                      double* current_time,
                      int initial_broadcast_nodes) {
     double busy_time = 0.00;
 
-    mcu_update_busy_time(nodes, id, time_resolution);
+    mcu_update_busy_time(nodes, id);
 
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
@@ -81,7 +79,7 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 2:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = channels * id * time_resolution;       // add wait to avoid channel overlap
+                    busy_time = channels * id * settings.time_resolution;       // add wait to avoid channel overlap
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
@@ -162,11 +160,11 @@ int mcu_run_function(struct Node* nodes,
                 break;
             case 11:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = (rand() % 100) * time_resolution;  // random busy time 
+                    busy_time = (rand() % 100) * settings.time_resolution;  // random busy time 
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_random_wait(nodes, node_count, id, time_resolution);
+                    mcu_function_random_wait(nodes, node_count, id);
                 }
                 break;
             case 12:
@@ -195,12 +193,10 @@ int mcu_run_function(struct Node* nodes,
 }
 
 // update node busy times
-int mcu_update_busy_time(struct Node* nodes,
-                         int id,
-                         double time_resolution) {
+int mcu_update_busy_time(struct Node* nodes, int id) {
     if (nodes[id].busy_remaining > 0) {
-        if (nodes[id].busy_remaining - time_resolution > 0) {
-            nodes[id].busy_remaining -= time_resolution;
+        if (nodes[id].busy_remaining - settings.time_resolution > 0) {
+            nodes[id].busy_remaining -= settings.time_resolution;
         }
         else {
             nodes[id].busy_remaining = 0;

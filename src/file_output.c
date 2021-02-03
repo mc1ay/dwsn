@@ -74,10 +74,7 @@ int create_transmit_history_file() {
     return 0;
 }
 
-int check_write_interval(struct Node* nodes,
-                         double *current_time, 
-                         double time_resolution, 
-                         double write_interval) {
+int check_write_interval(struct Node* nodes, double *current_time, double write_interval) {
 
     char file_path[100];
     char channel_active[settings.channels * 2 + 1];
@@ -87,7 +84,7 @@ int check_write_interval(struct Node* nodes,
         printf("Checking write interval: ");
     }
     
-    if (fmod(*current_time, write_interval) < time_resolution) {
+    if (fmod(*current_time, write_interval) < settings.time_resolution) {
         if (settings.debug > 1) {
             printf ("Match, writing output\n");
         }

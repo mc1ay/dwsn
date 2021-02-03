@@ -74,14 +74,16 @@ int initialize_nodes(struct Node* nodes,
     return 0;
 }
 
-int update_acceleration(struct Node* nodes, int node_count, double time_resolution) {
+int update_acceleration(struct Node* nodes, int node_count) {
     for (int i = 0; i < node_count; i++) {
         // update x/y acceleration
         // use spread_factor as percentage likelyhood that there is some change to acceleration
         if (rand() % 100 < settings.spread_factor) {
             // change x and y by random percentage of max allowed change per second
-            double x_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
-            double y_accel_change = (rand() % 201 - 100) / 100.0 * time_resolution * XYACCELDELTAMAX;
+            double x_accel_change = (rand() % 201 - 100) / 100.0 
+                                    * settings.time_resolution * XYACCELDELTAMAX;
+            double y_accel_change = (rand() % 201 - 100) / 100.0 
+                                    * settings.time_resolution * XYACCELDELTAMAX;
             if (settings.debug >= 3) {
                 printf("Changing x/y accel for node %d by %f,%f\n", i, x_accel_change, y_accel_change);
             }
@@ -94,13 +96,15 @@ int update_acceleration(struct Node* nodes, int node_count, double time_resoluti
     return 0;
 }
 
-int update_velocity(struct Node* nodes, int node_count, double time_resolution) {
+int update_velocity(struct Node* nodes, int node_count) {
     for (int i = 0; i < node_count; i++) {
         // update z velocity
         if (nodes[i].z_pos > 0) { 
             if (nodes[i].z_velocity < nodes[i].terminal_velocity) {
-                if (nodes[i].z_velocity + (nodes[i].z_acceleration * time_resolution) < nodes[i].terminal_velocity) {
-                    nodes[i].z_velocity += (nodes[i].z_acceleration * time_resolution);
+                if (nodes[i].z_velocity + (nodes[i].z_acceleration * 
+                    settings.time_resolution) < nodes[i].terminal_velocity) {
+                    nodes[i].z_velocity += (nodes[i].z_acceleration *
+                                           settings.time_resolution);
                 }
                 else {
                     nodes[i].z_velocity = nodes[i].terminal_velocity;
@@ -111,26 +115,26 @@ int update_velocity(struct Node* nodes, int node_count, double time_resolution) 
             }
         }
         // update x/y velocity
-        nodes[i].x_velocity += (nodes[i].x_acceleration * time_resolution);
-        nodes[i].y_velocity += (nodes[i].y_acceleration * time_resolution);
+        nodes[i].x_velocity += (nodes[i].x_acceleration * settings.time_resolution);
+        nodes[i].y_velocity += (nodes[i].y_acceleration * settings.time_resolution);
     }     
     return 0;
 }
 
-int update_position(struct Node* nodes, int node_count, double time_resolution) {
+int update_position(struct Node* nodes, int node_count) {
     for (int i = 0; i < node_count; i++) {
         // Update z position
         if (nodes[i].z_pos > 0) { 
-            if (nodes[i].z_pos - (nodes[i].z_velocity * time_resolution) > 0) { 
-                nodes[i].z_pos -= (nodes[i].z_velocity * time_resolution);
+            if (nodes[i].z_pos - (nodes[i].z_velocity * settings.time_resolution) > 0) { 
+                nodes[i].z_pos -= (nodes[i].z_velocity * settings.time_resolution);
             }
             else {
                 nodes[i].z_pos = 0;
             }
         }
         // Update x/y position
-        nodes[i].x_pos += (nodes[i].x_velocity * time_resolution);
-        nodes[i].y_pos += (nodes[i].y_velocity * time_resolution);
+        nodes[i].x_pos += (nodes[i].x_velocity * settings.time_resolution);
+        nodes[i].y_pos += (nodes[i].y_velocity * settings.time_resolution);
 
     }
     return 0;

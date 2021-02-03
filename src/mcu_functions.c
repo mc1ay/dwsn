@@ -720,10 +720,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
 
  * Function Returns:            0 - void
 **/
-int mcu_function_random_wait(struct Node* nodes,
-                                    int node_count,
-                                    int id,
-                                    double time_resolution) {    
+int mcu_function_random_wait(struct Node* nodes, int node_count, int id) {    
     int own_function_number = 11;
     // for now this does nothing, busy_time is set in mcu_run_function()
     mcu_return(nodes, id, own_function_number, 0);
