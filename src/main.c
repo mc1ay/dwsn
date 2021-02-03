@@ -24,7 +24,6 @@ struct State state;
 int clock_tick(struct Node* nodes, 
                int node_count, 
                double* current_time, 
-               int output,
                int group_max,
                int initial_broadcast_nodes,
                int channels) {
@@ -66,7 +65,6 @@ int main(int argc, char **argv) {
     settings.random_seed = -1;
     settings.debug = 0;
     settings.verbose = 1;
-    int output = 0;
     settings.output = 0;
     int channels = 16;
     settings.channels = 16;
@@ -110,7 +108,6 @@ int main(int argc, char **argv) {
             break;
         case 'o':
             settings.output = atoi(optarg);
-            output = settings.output;
             break;
         case 'm':
             group_max = atoi(optarg);
@@ -185,7 +182,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, output,  
+        clock_tick(nodes, node_count, &current_time,  
                    group_max, initial_broadcast_nodes, channels);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
