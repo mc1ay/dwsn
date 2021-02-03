@@ -20,12 +20,10 @@ int update_mcu(struct Node* nodes,
                int node_count,
                int group_max,
                int channels,
-               double* current_time,
-               int initial_broadcast_nodes) {
+               double* current_time) {
     for (int i = 0; i < node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
-        mcu_run_function(nodes, node_count, i, group_max, 
-                         channels, current_time, initial_broadcast_nodes);
+        mcu_run_function(nodes, node_count, i, group_max, channels, current_time);
     }
     return 0;
 }
@@ -56,8 +54,7 @@ int mcu_run_function(struct Node* nodes,
                      int id,
                      int group_max,
                      int channels,
-                     double* current_time,
-                     int initial_broadcast_nodes) {
+                     double* current_time) {
     double busy_time = 0.00;
 
     mcu_update_busy_time(nodes, id);
@@ -65,8 +62,7 @@ int mcu_run_function(struct Node* nodes,
     if (nodes[id].busy_remaining <= 0) {
         switch (nodes[id].current_function) {
             case 0:                         // initial starting point for all nodes
-                mcu_function_main(nodes, node_count, id, group_max, 
-                                  channels, initial_broadcast_nodes);
+                mcu_function_main(nodes, node_count, id, group_max, channels);
                 break;
             case 1:
                 if (nodes[id].busy_remaining < 0) {

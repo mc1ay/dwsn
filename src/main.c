@@ -25,7 +25,6 @@ int clock_tick(struct Node* nodes,
                int node_count, 
                double* current_time, 
                int group_max,
-               int initial_broadcast_nodes,
                int channels) {
     *current_time += settings.time_resolution; 
     
@@ -36,7 +35,7 @@ int clock_tick(struct Node* nodes,
     update_acceleration(nodes, node_count);
     update_velocity(nodes, node_count);
     update_position(nodes, node_count);
-    update_mcu(nodes, node_count, group_max, channels, current_time, initial_broadcast_nodes);
+    update_mcu(nodes, node_count, group_max, channels, current_time);
     if (settings.output) {
         check_write_interval(nodes, current_time);
     }
@@ -68,7 +67,7 @@ int main(int argc, char **argv) {
     settings.output = 0;
     int channels = 16;
     settings.channels = 16;
-    int initial_broadcast_nodes = 2;
+    settings.initial_broadcast_nodes = 2;
     settings.output_dir = malloc(sizeof(char) * 50);
     
     // get command line switches
@@ -113,7 +112,7 @@ int main(int argc, char **argv) {
             group_max = atoi(optarg);
             break;
         case 'b':
-            initial_broadcast_nodes = atoi(optarg);
+            settings.initial_broadcast_nodes = atoi(optarg);
             break;      
         case '?':
             if (optopt == 'c')
@@ -152,7 +151,7 @@ int main(int argc, char **argv) {
         printf("Terminal velocity: %f meters/second\n", settings.terminal_velocity);
         printf("Spread factor: %f\n", settings.spread_factor);
         printf("Default power output: %f\n", settings.default_power_output);
-        printf("Initial broadcast nodes: %d\n", initial_broadcast_nodes);
+        printf("Initial broadcast nodes: %d\n", settings.initial_broadcast_nodes);
     }
     
     if (settings.output) {
@@ -182,8 +181,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time,  
-                   group_max, initial_broadcast_nodes, channels);
+        clock_tick(nodes, node_count, &current_time, group_max, channels);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {
