@@ -28,7 +28,7 @@ extern struct State state;
 
  * Function Returns:            nothing
 **/
-int mcu_function_main(struct Node* nodes, int node_count, int id, int group_max) {
+int mcu_function_main(struct Node* nodes, int node_count, int id) {
     int own_function_number = 0;
 
     if (nodes[id].return_stack->returning_from == 1) {
@@ -142,7 +142,7 @@ int mcu_function_main(struct Node* nodes, int node_count, int id, int group_max)
  * Function Returns:            -1 - no LFG found
  *                              ID - node broadcasting LFG with <ID>
 **/
-int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, int group_max) {
+int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id) {
     int own_function_number = 1;
 
     if (nodes[id].return_stack->returning_from == 7) {
@@ -239,10 +239,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int node_count, int id, int group_
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
-int mcu_function_broadcast_lfg(struct Node* nodes,
-                               int id,
-                               int group_max,
-                               double* current_time) {
+int mcu_function_broadcast_lfg(struct Node* nodes, int id, double* current_time) {
     int own_function_number = 2;
                                 
     if (nodes[id].return_stack->returning_from == 3) {
@@ -587,11 +584,7 @@ int mcu_function_respond_lfg(struct Node* nodes,
 
  * Function Returns:            0 - void
 **/
-int mcu_function_scan_lfg_responses(struct Node* nodes,
-                                           int node_count,
-                                           int id,
-                                           double* current_time,
-                                           int group_max) {
+int mcu_function_scan_lfg_responses(struct Node* nodes, int node_count, int id, double* current_time) {
     int own_function_number = 10;
 
     if (nodes[id].return_stack->returning_from == 12) {
@@ -639,7 +632,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes,
                     }
                     i++;
                 }
-                while (i < group_max - 1 && available_slot == -1);
+                while (i < settings.group_max - 1 && available_slot == -1);
  
                 if (available_slot == -1) {
                     // group is full (TO-DO, respond to this)

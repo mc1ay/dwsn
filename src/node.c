@@ -13,7 +13,7 @@
 extern struct Settings settings;
 extern struct State state;
 
-int initialize_nodes(struct Node* nodes, int node_count, int group_max) {
+int initialize_nodes(struct Node* nodes, int node_count) {
     char file_path[100];
 
     if (settings.debug) {
@@ -40,7 +40,7 @@ int initialize_nodes(struct Node* nodes, int node_count, int group_max) {
         nodes[i].current_function = 0;
         nodes[i].busy_remaining = -1;
         nodes[i].received_signals = malloc(sizeof(double) * node_count);
-        nodes[i].group_list = malloc(sizeof(int) * group_max);
+        nodes[i].group_list = malloc(sizeof(int) * settings.group_max);
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
         nodes[i].return_stack = malloc(sizeof(struct RS_Element));
         nodes[i].tmp_lfg_chans = malloc(sizeof(int) * settings.channels);
@@ -52,7 +52,7 @@ int initialize_nodes(struct Node* nodes, int node_count, int group_max) {
         }
         
         // Set up array for group members, use -1 for no node
-        for (int j = 0; j < group_max; j++) {
+        for (int j = 0; j < settings.group_max; j++) {
             nodes[i].group_list[j] = -1;
         }
 

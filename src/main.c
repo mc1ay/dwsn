@@ -21,10 +21,7 @@
 struct Settings settings;
 struct State state;
 
-int clock_tick(struct Node* nodes, 
-               int node_count, 
-               double* current_time, 
-               int group_max) {
+int clock_tick(struct Node* nodes, int node_count, double* current_time) {
     *current_time += settings.time_resolution; 
     
     if (settings.debug > 1) {
@@ -34,7 +31,7 @@ int clock_tick(struct Node* nodes,
     update_acceleration(nodes, node_count);
     update_velocity(nodes, node_count);
     update_position(nodes, node_count);
-    update_mcu(nodes, node_count, group_max, current_time);
+    update_mcu(nodes, node_count, current_time);
     if (settings.output) {
         check_write_interval(nodes, current_time);
     }
@@ -59,7 +56,7 @@ int main(int argc, char **argv) {
     settings.spread_factor = 20;
     settings.default_power_output = 400;
     settings.write_interval = 1.0;
-    int group_max = 5;
+    settings.group_max = 5;
     settings.random_seed = -1;
     settings.debug = 0;
     settings.verbose = 1;
@@ -107,7 +104,7 @@ int main(int argc, char **argv) {
             settings.output = atoi(optarg);
             break;
         case 'm':
-            group_max = atoi(optarg);
+            settings.group_max = atoi(optarg);
             break;
         case 'b':
             settings.initial_broadcast_nodes = atoi(optarg);
@@ -164,7 +161,7 @@ int main(int argc, char **argv) {
         printf("Initializing nodes\n");
     }
     struct Node nodes[node_count];
-    ret = initialize_nodes(nodes, node_count, group_max);
+    ret = initialize_nodes(nodes, node_count);
     if (ret == 0) {
         if (settings.verbose) {
             printf("Initialization OK\n");
@@ -179,7 +176,7 @@ int main(int argc, char **argv) {
     t1 = clock();
 
     while (moving_nodes != 0) {
-        clock_tick(nodes, node_count, &current_time, group_max);
+        clock_tick(nodes, node_count, &current_time);
         moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {

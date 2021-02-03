@@ -24,6 +24,7 @@ struct Settings {
     double spread_factor;
     double default_power_output;
     double write_interval;
+    int group_max;
     int debug;
     int verbose;
     int output;
