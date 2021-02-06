@@ -7,6 +7,7 @@
 **/
 
 #include <time.h>
+#include "node.h"
 
 #ifndef state_H
 #define state_H
@@ -18,5 +19,7 @@ struct State {
     int ret;
     double current_time;
 };
+
+int clock_tick(struct Node* nodes, double* current_time);
 
 #endif

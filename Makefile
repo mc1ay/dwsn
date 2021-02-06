@@ -1,6 +1,6 @@
-dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o
-	cc -o dwsn -lm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o
-	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o
+dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o
+	cc -o dwsn -lm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o
+	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o
 main.o:
 	cc -Wall -g -c src/main.c
 node.o:
@@ -13,3 +13,5 @@ file_output.o:
 	cc -Wall -g -c src/file_output.c
 settings.o:
 	cc -Wall -g -c src/settings.c
+state.o:
+	cc -Wall -g -c src/state.c
