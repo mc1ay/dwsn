@@ -16,7 +16,6 @@
 struct State {
     clock_t start_time;
     int moving_nodes; 
-    int ret;
     double current_time;
 };
 
