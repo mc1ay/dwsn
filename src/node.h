@@ -64,7 +64,7 @@ int update_acceleration(struct Node*);
 int update_velocity(struct Node*);
 int update_position(struct Node*);
 int update_signal(struct Node*, int, int);
-int write_node_data(struct Node*, int, double, FILE*);
+int write_node_data(struct Node*, int, FILE*);
 void fs_push(int, int, struct FS_Element**);
 void fs_pop(struct FS_Element**);
 void rs_push(int, int, int, struct RS_Element**);

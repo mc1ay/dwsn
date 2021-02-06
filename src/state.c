@@ -22,19 +22,19 @@ int initialize_state() {
     return 0;
 }
 
-int clock_tick(struct Node* nodes, double* current_time) {
-    *current_time += settings.time_resolution; 
+int clock_tick(struct Node* nodes) {
+    state.current_time += settings.time_resolution;
     
     if (settings.debug > 1) {
-        printf("Clock tick: %f\n", *current_time);
+        printf("Clock tick: %f\n", state.current_time);
     }
 
     update_acceleration(nodes);
     update_velocity(nodes);
     update_position(nodes);
-    update_mcu(nodes, current_time);
+    update_mcu(nodes);
     if (settings.output) {
-        check_write_interval(nodes, current_time);
+        check_write_interval(nodes);
     }
 
     return 0;

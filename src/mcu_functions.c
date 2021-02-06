@@ -7,6 +7,7 @@
 **/
 
 #include "mcu_functions.h"
+#include "state.h"
 
 extern struct Settings settings;
 extern struct State state;
@@ -239,7 +240,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
-int mcu_function_broadcast_lfg(struct Node* nodes, int id, double* current_time) {
+int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
     int own_function_number = 2;
                                 
     if (nodes[id].return_stack->returning_from == 3) {
@@ -280,13 +281,13 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id, double* current_time)
         // Not returning from a call
         if (nodes[id].tmp_start_time == FLT_MAX) {
             // First call
-            nodes[id].tmp_start_time = *current_time;
+            nodes[id].tmp_start_time = state.current_time;
             mcu_call(nodes, id, own_function_number, 0, 3);
             return 0;
         }
         else {
             // check time
-            if (nodes[id].tmp_start_time + 3.0 < *current_time) {
+            if (nodes[id].tmp_start_time + 3.0 < state.current_time) {
                 // time expired, stop transmit after resetting timer
                 nodes[id].tmp_start_time = FLT_MAX;
                 mcu_call(nodes, id, own_function_number, 2, 6);
@@ -495,7 +496,7 @@ int mcu_function_sleep(struct Node* nodes, int id) {
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
-int mcu_function_respond_lfg(struct Node* nodes, int id, double* current_time) {
+int mcu_function_respond_lfg(struct Node* nodes, int id) {
     int own_function_number = 9;
     
     if (nodes[id].return_stack->returning_from == 13) {
@@ -571,7 +572,7 @@ int mcu_function_respond_lfg(struct Node* nodes, int id, double* current_time) {
 
  * Function Returns:            0 - void
 **/
-int mcu_function_scan_lfg_responses(struct Node* nodes, int id, double* current_time) {
+int mcu_function_scan_lfg_responses(struct Node* nodes, int id) {
     int own_function_number = 10;
 
     if (nodes[id].return_stack->returning_from == 12) {
@@ -652,7 +653,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id, double* current_
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         // check time
-        if (nodes[id].tmp_start_time + 5.0 < *current_time) {
+        if (nodes[id].tmp_start_time + 5.0 < state.current_time) {
             // time expired stop listening for replies, return to main
             nodes[id].tmp_start_time = FLT_MAX;
             mcu_return(nodes, id, own_function_number, 0);
@@ -675,7 +676,7 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id, double* current_
         if (settings.debug) {
             printf("Node %d listening for LFG-R packets on channel %d\n", id, nodes[id].active_channel);
         }
-        nodes[id].tmp_start_time = *current_time;
+        nodes[id].tmp_start_time = state.current_time;
 
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
@@ -768,7 +769,7 @@ int mcu_function_lfgr_send_ack(struct Node* nodes, int id) {
  * Function Returns:            1 - ACK received
  *                              0 - Nothing heard
 **/
-int mcu_function_lfgr_get_ack(struct Node* nodes, int id, double* current_time) {    
+int mcu_function_lfgr_get_ack(struct Node* nodes, int id) {    
     int own_function_number = 13;
 
     if (nodes[id].return_stack->returning_from == 7) {
@@ -811,7 +812,7 @@ int mcu_function_lfgr_get_ack(struct Node* nodes, int id, double* current_time) 
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         // check time
-        if (nodes[id].tmp_start_time + 0.05 < *current_time) {
+        if (nodes[id].tmp_start_time + 0.05 < state.current_time) {
             // time expired stop listening for replies, return to main
             nodes[id].tmp_start_time = FLT_MAX;
             mcu_return(nodes, id, own_function_number, 0);
@@ -832,7 +833,7 @@ int mcu_function_lfgr_get_ack(struct Node* nodes, int id, double* current_time) 
     else {
         // Not returning from a call (first entry)
         // set start_time and check for activity on active channel
-        nodes[id].tmp_start_time = *current_time;
+        nodes[id].tmp_start_time = state.current_time;
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;    

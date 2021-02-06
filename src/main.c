@@ -23,7 +23,6 @@ struct State state;
 int main(int argc, char **argv) {
     // Initialization and defaults
     int ret = 0;
-    double current_time = 0;
     set_program_defaults();
     
     // get command line switches
@@ -83,7 +82,7 @@ int main(int argc, char **argv) {
     }
 
     while (state.moving_nodes != 0) {
-        clock_tick(nodes, &current_time);
+        clock_tick(nodes);
         state.moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {
@@ -114,7 +113,7 @@ int main(int argc, char **argv) {
         }
     }
     if (settings.verbose) {
-        printf("Final clock time: %f seconds\n", current_time);
+        printf("Final clock time: %f seconds\n", state.current_time);
     }
     
     return 0;
