@@ -9,9 +9,18 @@
 #include "node.h"
 #include "file_output.h"
 #include "mcu_emulation.h"
+#include "state.h"
 
 extern struct Settings settings;
 extern struct State state;
+
+int initialize_state() {
+    state.start_time = clock();
+    state.moving_nodes = 0;
+    state.current_time = 0;
+
+    return 0;
+}
 
 int clock_tick(struct Node* nodes, double* current_time) {
     *current_time += settings.time_resolution; 

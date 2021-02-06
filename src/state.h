@@ -20,6 +20,7 @@ struct State {
     double current_time;
 };
 
+int initialize_state();
 int clock_tick(struct Node* nodes, double* current_time);
 
 #endif

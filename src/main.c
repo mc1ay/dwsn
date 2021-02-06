@@ -31,6 +31,9 @@ int main(int argc, char **argv) {
     // get command line switches
     get_switches(argc, argv);
 
+    // state initialization
+    initialize_state();
+
     // Print message about debug level
     if (settings.debug) {
         printf("Debug level: %d", settings.debug);
