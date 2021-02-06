@@ -22,7 +22,6 @@ struct State state;
 
 int main(int argc, char **argv) {
     // Initialization and defaults
-    clock_t t1, t2;
     int moving_nodes = 0; 
     int ret = 0;
     double current_time = 0;
@@ -83,7 +82,6 @@ int main(int argc, char **argv) {
     if (settings.verbose) {
         printf("Running simulation\n");
     }
-    t1 = clock();
 
     while (moving_nodes != 0) {
         clock_tick(nodes, &current_time);
@@ -96,8 +94,7 @@ int main(int argc, char **argv) {
     }
 
     // Calculate simulation time
-    t2 = clock();
-    double runTime = (double)(t2 - t1) / CLOCKS_PER_SEC;
+    double runTime = (double)(clock() - state.start_time) / CLOCKS_PER_SEC;
 
     // Print summary information
     if (settings.verbose) {
