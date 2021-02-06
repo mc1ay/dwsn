@@ -6,8 +6,6 @@
  * @date    1/31/2021
 **/
 
-#include <time.h>
-
 #ifndef settings_H
 #define settings_H
 
@@ -32,14 +30,6 @@ struct Settings {
     int initial_broadcast_nodes;
     char* output_dir;
     int use_pthreads;
-};
-
-// Struct for storing program state 
-struct State {
-    clock_t start_time;
-    int moving_nodes; 
-    int ret;
-    double current_time;
 };
 
 void set_program_defaults();

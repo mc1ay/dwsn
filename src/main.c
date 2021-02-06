@@ -15,6 +15,7 @@
 #include "mcu_emulation.h"
 #include "file_output.h"
 #include "settings.h"
+#include "state.h"
 
 struct Settings settings;
 struct State state;
