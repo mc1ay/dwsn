@@ -33,6 +33,7 @@ void set_program_defaults() {
     settings.channels = 16;
     settings.initial_broadcast_nodes = 2;
     settings.output_dir = malloc(sizeof(char) * 50);
+    settings.use_pthreads = 0;
 }
 
 void get_switches(int argc, char **argv) {
@@ -58,7 +59,7 @@ void get_switches(int argc, char **argv) {
             settings.start_z = atof(optarg);
             break;
         case 't':
-            settings.terminal_velocity = atof(optarg);
+            settings.use_pthreads = atof(optarg);
             break;
         case 's': 
             settings.spread_factor = atof(optarg);

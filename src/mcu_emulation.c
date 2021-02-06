@@ -8,6 +8,7 @@
 
 #include "mcu_emulation.h"
 #include "mcu_functions.h"
+#include <pthread.h>
 
 extern struct Settings settings;
 extern struct State state;

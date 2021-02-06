@@ -31,6 +31,7 @@ struct Settings {
     int channels;
     int initial_broadcast_nodes;
     char* output_dir;
+    int use_pthreads;
 };
 
 // Struct for storing program state 
