@@ -22,7 +22,6 @@ struct State state;
 
 int main(int argc, char **argv) {
     // Initialization and defaults
-    int moving_nodes = 0; 
     int ret = 0;
     double current_time = 0;
     set_program_defaults();
@@ -75,7 +74,7 @@ int main(int argc, char **argv) {
         if (settings.verbose) {
             printf("Initialization OK\n");
         }
-        moving_nodes = settings.node_count;
+        state.moving_nodes = settings.node_count;
     }
     
     // Run until all nodes reach z = 0;
@@ -83,12 +82,12 @@ int main(int argc, char **argv) {
         printf("Running simulation\n");
     }
 
-    while (moving_nodes != 0) {
+    while (state.moving_nodes != 0) {
         clock_tick(nodes, &current_time);
-        moving_nodes = 0; 
+        state.moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {
-                moving_nodes++;
+                state.moving_nodes++;
             }
         }
     }
