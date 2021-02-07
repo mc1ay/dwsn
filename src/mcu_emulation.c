@@ -68,7 +68,7 @@ int mcu_run_function(struct Node* nodes, int id) {
                 break;
             case 2:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = settings.channels * id * settings.time_resolution;       // add wait to avoid channel overlap
+                    busy_time = 0;
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
