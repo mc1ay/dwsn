@@ -53,16 +53,16 @@ int mcu_function_main(struct Node* nodes, int id) {
                     }
                 }
             }
+    
             // find strongest signal broadcasting LFG
             for (int i = 0; i < settings.channels; i++) {
                 if (nodes[id].tmp_lfg_chans[i] != -1) {
-                    if (nodes[id].received_signals[i] > strongest_signal) {
+                    if (nodes[id].received_signals[nodes[id].tmp_lfg_chans[i]] > strongest_signal) {
                         strongest_node_id = i;
                         strongest_signal = nodes[id].received_signals[i];
                     }
                 }
             }
-
             // if no available nodes, scan again
             if (strongest_node_id == -1) {
                 mcu_call(nodes, id, own_function_number, 1, 1);
@@ -166,6 +166,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
+                printf("setting nodes[%d].tmp_lfg_chans[%d] = %d\n", id, nodes[id].active_channel, return_value);
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
             }
             // Keep scanning if not at last channel
