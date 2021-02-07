@@ -8,6 +8,7 @@
 
 #include "mcu_emulation.h"
 #include "mcu_functions.h"
+#include "state.h"
 #include <pthread.h>
 
 extern struct Settings settings;
@@ -17,10 +18,10 @@ extern struct State state;
  * Microcontroller node selection
  * Desc: Cycles through all nodes and calls MCU function handler for each
 **/
-int update_mcu(struct Node* nodes, double* current_time) {
+int update_mcu(struct Node* nodes) {
     for (int i = 0; i < settings.node_count; i++) {
         // To-do!!! check to make sure nodes aren't on ground
-        mcu_run_function(nodes, i, current_time);
+        mcu_run_function(nodes, i);
     }
     return 0;
 }
@@ -46,7 +47,7 @@ int update_mcu(struct Node* nodes, double* current_time) {
  * 12: lfgr_send_ack
  * 13: lfgr_get_ack
 **/
-int mcu_run_function(struct Node* nodes, int id, double* current_time) {
+int mcu_run_function(struct Node* nodes, int id) {
     double busy_time = 0.00;
 
     mcu_update_busy_time(nodes, id);
@@ -71,7 +72,7 @@ int mcu_run_function(struct Node* nodes, int id, double* current_time) {
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
-                    mcu_function_broadcast_lfg(nodes, id, current_time);
+                    mcu_function_broadcast_lfg(nodes, id);
                 }
                 break;
             case 3:
@@ -134,7 +135,7 @@ int mcu_run_function(struct Node* nodes, int id, double* current_time) {
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_respond_lfg(nodes, id, current_time);
+                    mcu_function_respond_lfg(nodes, id);
                 }
                 break;
             case 10:
@@ -143,7 +144,7 @@ int mcu_run_function(struct Node* nodes, int id, double* current_time) {
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_scan_lfg_responses(nodes, id, current_time);
+                    mcu_function_scan_lfg_responses(nodes, id);
                 }
                 break;
             case 11:
@@ -170,7 +171,7 @@ int mcu_run_function(struct Node* nodes, int id, double* current_time) {
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
-                    mcu_function_lfgr_get_ack(nodes, id, current_time);
+                    mcu_function_lfgr_get_ack(nodes, id);
                 }
                 break;            
             default:

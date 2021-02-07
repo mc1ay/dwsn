@@ -7,6 +7,7 @@
 **/
 
 #include "file_output.h"
+#include "state.h"
 
 extern struct Settings settings;
 extern struct State state;
@@ -74,7 +75,7 @@ int create_transmit_history_file() {
     return 0;
 }
 
-int check_write_interval(struct Node* nodes, double *current_time) {
+int check_write_interval(struct Node* nodes) {
 
     char file_path[100];
     char channel_active[settings.channels * 2 + 1];
@@ -84,7 +85,7 @@ int check_write_interval(struct Node* nodes, double *current_time) {
         printf("Checking write interval: ");
     }
     
-    if (fmod(*current_time, settings.write_interval) < settings.time_resolution) {
+    if (fmod(state.current_time, settings.write_interval) < settings.time_resolution) {
         if (settings.debug > 1) {
             printf ("Match, writing output\n");
         }
@@ -101,7 +102,7 @@ int check_write_interval(struct Node* nodes, double *current_time) {
             if (settings.debug> 1) {
                 printf("Writing data to file\n");
             }
-            write_node_data(nodes, i, *current_time, node_data_file);
+            write_node_data(nodes, i, node_data_file);
 
             if (settings.debug> 1) {
                 printf("Closing file\n");
@@ -151,7 +152,7 @@ int check_write_interval(struct Node* nodes, double *current_time) {
         if (settings.debug> 1) {
             printf("Putting line into buffer\n");
         }
-        sprintf(buffer, "%f\t%s\n", *current_time, channel_active);
+        sprintf(buffer, "%f\t%s\n", state.current_time, channel_active);
 
         if (settings.debug> 1) {
             printf("Writing data to file\n");

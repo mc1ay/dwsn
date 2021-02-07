@@ -9,6 +9,7 @@
 #include "node.h"
 #include "mcu_emulation.h"
 #include "settings.h"
+#include "state.h"
 
 extern struct Settings settings;
 extern struct State state;
@@ -63,7 +64,7 @@ int initialize_nodes(struct Node* nodes) {
             }
             FILE *fp;
             fp  = fopen (file_path, "w");
-            write_node_data(nodes, i, 0.0, fp);
+            write_node_data(nodes, i, fp);
             fclose(fp);
         }
     }
@@ -150,9 +151,9 @@ int update_signal(struct Node* nodes, int id, int target) {
     return 0;
 }
 
-int write_node_data(struct Node* nodes, int id, double current_time, FILE *fp) {
+int write_node_data(struct Node* nodes, int id, FILE *fp) {
     char buffer[100 + settings.node_count * 15];
-    sprintf(buffer, "%f\t%i\t%i\t%f\t%f\t%f ", current_time, 
+    sprintf(buffer, "%f\t%i\t%i\t%f\t%f\t%f ", state.current_time, 
                                           nodes[id].active_channel,
                                           nodes[id].current_function, 
                                           nodes[id].x_pos, 
