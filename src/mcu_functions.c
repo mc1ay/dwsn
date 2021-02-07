@@ -340,6 +340,10 @@ int mcu_function_find_clear_channel(struct Node* nodes, int id) {
     }
     else {
         // Not returning from a call (first entry)
+        // Initialize tmp_scanned_chans array
+        for (int i = 0; i < settings.channels; i++) {
+            nodes[id].tmp_scanned_chans[i] = 0;
+        }
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;
