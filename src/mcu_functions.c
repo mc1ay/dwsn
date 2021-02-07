@@ -319,15 +319,37 @@ int mcu_function_find_clear_channel(struct Node* nodes, int id) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+        // Mark channel as scanned
+        nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
+
+        // Check return value
         if (return_value == 1) {
-            // Channel was busy, go to next, unless at last channel
-            if (nodes[id].active_channel == settings.channels) {
-                nodes[id].active_channel = 0;
+            // Channel was busy, find another unless all are busy
+            // First, see how many channels haven't been checked
+            int unscanned_channel_count = 0;
+            for (int i = 0; i < settings.channels; i++) {
+                if (nodes[id].tmp_scanned_chans[i] == 0) {
+                    unscanned_channel_count++;
+                }
+            }
+            if (unscanned_channel_count == 0) {
+                // All channels have been scanned
                 mcu_return(nodes, id, own_function_number, -1);
                 return 0;
             }
             else {
-                nodes[id].active_channel++;
+                // Make array of channels that haven't been scanned
+                int unscanned_chans[unscanned_channel_count];
+                int channel = 0;
+                for (int i = 0; i < unscanned_channel_count; i++) {
+                    while (nodes[id].tmp_scanned_chans[channel] == 1) {
+                        channel++;
+                    }
+                    unscanned_chans[i] = nodes[id].tmp_scanned_chans[channel];
+                    channel++;
+                }
+                // Pick an unscanned channel at random to try next
+                nodes[id].active_channel = unscanned_chans[rand() % unscanned_channel_count];
                 mcu_call(nodes, id, own_function_number, 0, 4);
                 return 0;
             }
@@ -340,6 +362,11 @@ int mcu_function_find_clear_channel(struct Node* nodes, int id) {
     }
     else {
         // Not returning from a call (first entry)
+        // Initialize tmp_scanned_chans array
+        for (int i = 0; i < settings.channels; i++) {
+            nodes[id].tmp_scanned_chans[i] = 0;
+        }
+        nodes[id].active_channel = rand() % settings.channels;
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;

@@ -45,6 +45,7 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].function_stack = malloc(sizeof(struct FS_Element));
         nodes[i].return_stack = malloc(sizeof(struct RS_Element));
         nodes[i].tmp_lfg_chans = malloc(sizeof(int) * settings.channels);
+        nodes[i].tmp_scanned_chans = malloc(sizeof(int) * settings.channels);
         nodes[i].tmp_start_time = FLT_MAX;
 
         // Set all received signals to 0 initially
