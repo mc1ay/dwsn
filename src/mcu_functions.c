@@ -220,8 +220,15 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
                 }
             }
             if (unscanned_channel_count == 0) {
-                // If all channels scanned, return to main
-                mcu_return(nodes, id, own_function_number, return_value);
+                // If all channels scanned, clear array and scan again until timer expires
+                // Initialize tmp_scanned_chans array
+                for (int i = 0; i < settings.channels; i++) {
+                    nodes[id].tmp_scanned_chans[i] = 0;
+                }
+                // Pick random start channel
+                nodes[id].active_channel = rand() % settings.channels;
+                // Check if first channel is busy
+                mcu_call(nodes, id, own_function_number, 0, 4); 
                 return 0;
             }
             else {
@@ -244,19 +251,29 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         }
     }
     else {
-        // Not returning from a call (first entry)
-        // Initialize LFG tmp array before scanning
-        for (int i = 0; i < settings.channels; i++) {
-            nodes[id].tmp_lfg_chans[i] = -1;
+        if (nodes[id].tmp_start_time == FLT_MAX) {
+            // Not returning from a call (first entry)
+            // Initialize LFG tmp array before scanning
+            for (int i = 0; i < settings.channels; i++) {
+                nodes[id].tmp_lfg_chans[i] = -1;
+            }
+            // Initialize tmp_scanned_chans array
+            for (int i = 0; i < settings.channels; i++) {
+                nodes[id].tmp_scanned_chans[i] = 0;
+            }
+            // Pick random start channel
+            nodes[id].active_channel = rand() % settings.channels;
+            // Check if first channel is busy
+            mcu_call(nodes, id, own_function_number, 0, 4);
         }
-        // Initialize tmp_scanned_chans array
-        for (int i = 0; i < settings.channels; i++) {
-            nodes[id].tmp_scanned_chans[i] = 0;
-        }
-        // Pick random start channel
-        nodes[id].active_channel = rand() % settings.channels;
-        // Check if first channel is busy
-        mcu_call(nodes, id, own_function_number, 0, 4);
+        else {
+            // check time
+            if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
+                // time expired, stop transmit after resetting timer
+                nodes[id].tmp_start_time = FLT_MAX;
+                mcu_return(nodes, id, own_function_number, 0);
+            }
+        }   
     }
     return 0;
 }
@@ -314,6 +331,8 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         }
         // No error checking for now
         rs_pop(&nodes[id].return_stack);
+        // Reset timer and return
+        nodes[id].tmp_start_time = FLT_MAX;
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
 
         return 0;
