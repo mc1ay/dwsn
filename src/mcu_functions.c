@@ -166,7 +166,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
-                if (debug) {
+                if (settings.debug) {
                     printf("setting nodes[%d].tmp_lfg_chans[%d] = %d\n", id, nodes[id].active_channel, return_value);
                 }
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
