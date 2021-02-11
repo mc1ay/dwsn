@@ -166,20 +166,34 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
-                if (settings.debug) {
-                    printf("setting nodes[%d].tmp_lfg_chans[%d] = %d\n", id, nodes[id].active_channel, return_value);
-                }
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
             }
             // Keep scanning if not at last channel
-            if (nodes[id].active_channel == settings.channels) {
-            // If at last channel, return to main
-                nodes[id].active_channel = 0;
+            // See how many unscanned channels are left
+            int unscanned_channel_count = 0;
+            for (int i = 0; i < settings.channels; i++) {
+                if (nodes[id].tmp_scanned_chans[i] == 0) {
+                    unscanned_channel_count++;
+                }
+            }
+            if (unscanned_channel_count == 0) {
+                // If all channels scanned, return to main
                 mcu_return(nodes, id, own_function_number, return_value);
                 return 0;
             }
             else {
-                nodes[id].active_channel++;
+                // Make array of channels that haven't been scanned
+                int unscanned_chans[unscanned_channel_count];
+                int channel = 0;
+                for (int i = 0; i < unscanned_channel_count; i++) {
+                    while (nodes[id].tmp_scanned_chans[channel] == 1) {
+                        channel++;
+                    }
+                    unscanned_chans[i] = nodes[id].tmp_scanned_chans[channel];
+                    channel++;
+                }
+                // Pick an unscanned channel at random to try next
+                nodes[id].active_channel = unscanned_chans[rand() % unscanned_channel_count];
                 mcu_call(nodes, id, own_function_number, 0, 4);
                 return 0;
             }
@@ -189,6 +203,8 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+        // Mark channel as scanned
+        nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
         if (return_value == 1) {
             // Activity on channel, get packet
             mcu_call(nodes, id, own_function_number, 1, 7);
@@ -196,14 +212,32 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         }
         else {
             // Didn't hear anything, go to next channel
-            if (nodes[id].active_channel == settings.channels) {
-                // If at last channel, return to main
-                nodes[id].active_channel = 0;
+            // See how many unscanned channels are left
+            int unscanned_channel_count = 0;
+            for (int i = 0; i < settings.channels; i++) {
+                if (nodes[id].tmp_scanned_chans[i] == 0) {
+                    unscanned_channel_count++;
+                }
+            }
+            if (unscanned_channel_count == 0) {
+                // If all channels scanned, return to main
                 mcu_return(nodes, id, own_function_number, return_value);
                 return 0;
             }
             else {
-                nodes[id].active_channel++;
+                // Make array of channels that haven't been scanned
+                int unscanned_chans[unscanned_channel_count];
+                int channel = 0;
+                for (int i = 0; i < unscanned_channel_count; i++) {
+                    while (nodes[id].tmp_scanned_chans[channel] == 1) {
+                        channel++;
+                    }
+                    unscanned_chans[i] = channel;
+                    channel++;
+                }
+
+                // Pick an unscanned channel at random to try next
+                nodes[id].active_channel = unscanned_chans[rand() % unscanned_channel_count];
                 mcu_call(nodes, id, own_function_number, 0, 4);
                 return 0;
             }
@@ -211,12 +245,16 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
     }
     else {
         // Not returning from a call (first entry)
-        // Start at first channel
-        nodes[id].active_channel = 0;
         // Initialize LFG tmp array before scanning
         for (int i = 0; i < settings.channels; i++) {
             nodes[id].tmp_lfg_chans[i] = -1;
         }
+        // Initialize tmp_scanned_chans array
+        for (int i = 0; i < settings.channels; i++) {
+            nodes[id].tmp_scanned_chans[i] = 0;
+        }
+        // Pick random start channel
+        nodes[id].active_channel = rand() % settings.channels;
         // Check if first channel is busy
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
