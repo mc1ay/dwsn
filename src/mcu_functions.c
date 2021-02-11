@@ -189,7 +189,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
                     while (nodes[id].tmp_scanned_chans[channel] == 1) {
                         channel++;
                     }
-                    unscanned_chans[i] = nodes[id].tmp_scanned_chans[channel];
+                    unscanned_chans[i] = channel;
                     channel++;
                 }
                 // Pick an unscanned channel at random to try next
