@@ -47,19 +47,18 @@ int mcu_function_main(struct Node* nodes, int id) {
             // if debugging, print nodes found
             if (settings.debug) {
                 printf("After scanning node %d heard broadcasts from: \n", id);
-                for (int i = 0; i < settings.channels; i++) {
-                    if (nodes[id].received_signals[i] > strongest_signal) {
-                        printf("  Node %d (%f dBm)\n", i, nodes[id].received_signals[i]);
-                    }
-                }
             }
     
             // find strongest signal broadcasting LFG
             for (int i = 0; i < settings.channels; i++) {
                 if (nodes[id].tmp_lfg_chans[i] != -1) {
+                    if (settings.debug) {
+                        printf("  Node %d (%f dBM)\n", nodes[id].tmp_lfg_chans[i], 
+                               nodes[id].received_signals[nodes[id].tmp_lfg_chans[i]]);
+                    }
                     if (nodes[id].received_signals[nodes[id].tmp_lfg_chans[i]] > strongest_signal) {
-                        strongest_node_id = i;
-                        strongest_signal = nodes[id].received_signals[i];
+                        strongest_node_id = nodes[id].tmp_lfg_chans[i];
+                        strongest_signal = nodes[id].received_signals[nodes[id].tmp_lfg_chans[i]];
                     }
                 }
             }
@@ -68,9 +67,13 @@ int mcu_function_main(struct Node* nodes, int id) {
                 mcu_call(nodes, id, own_function_number, 1, 1);
                 return 0;
             }
-
+            if (settings.debug) {
+            printf("Node %d will attempt to send LFG-R to node %d on channel %d\n",
+                    id, strongest_node_id, nodes[strongest_node_id].active_channel);
+            }
+            
             // set active channel to same channel as strongest LFG broadcaster
-            nodes[id].active_channel = strongest_node_id;
+            nodes[id].active_channel = nodes[strongest_node_id].active_channel;
 
             // call respond_lfg
             mcu_call(nodes, id, own_function_number, 2, 9);
