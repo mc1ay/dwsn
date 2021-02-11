@@ -166,7 +166,9 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
-                printf("setting nodes[%d].tmp_lfg_chans[%d] = %d\n", id, nodes[id].active_channel, return_value);
+                if (debug) {
+                    printf("setting nodes[%d].tmp_lfg_chans[%d] = %d\n", id, nodes[id].active_channel, return_value);
+                }
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
             }
             // Keep scanning if not at last channel
@@ -288,7 +290,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         }
         else {
             // check time
-            if (nodes[id].tmp_start_time + 3.0 < state.current_time) {
+            if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
                 // time expired, stop transmit after resetting timer
                 nodes[id].tmp_start_time = FLT_MAX;
                 mcu_call(nodes, id, own_function_number, 2, 6);
