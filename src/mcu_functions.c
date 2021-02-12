@@ -534,6 +534,7 @@ int mcu_function_receive(struct Node* nodes, int id) {
         if (settings.debug) {
             printf("Node %d detected collision\n", id);
         }
+        state.collisions++;
         mcu_return(nodes, id, own_function_number, -1);
         return 0;
     }

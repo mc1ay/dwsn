@@ -18,6 +18,7 @@ int initialize_state() {
     state.start_time = clock();
     state.moving_nodes = 0;
     state.current_time = 0;
+    state.collisions = 0;
 
     return 0;
 }

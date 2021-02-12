@@ -116,5 +116,8 @@ int main(int argc, char **argv) {
         printf("Final clock time: %f seconds\n", state.current_time);
     }
     
+    if (settings.verbose) {
+        printf("Total collisions detected: %d\n", state.collisions);
+    }
     return 0;
 }

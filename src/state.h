@@ -17,6 +17,7 @@ struct State {
     clock_t start_time;
     int moving_nodes; 
     double current_time;
+    int collisions;
 };
 
 int initialize_state();
