@@ -149,7 +149,7 @@ int mcu_run_function(struct Node* nodes, int id) {
                 break;
             case 11:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = (rand() % 100) * settings.time_resolution;  // random busy time 
+                    busy_time = (rand() % 500) * settings.time_resolution;  // random busy time 
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {
