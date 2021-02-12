@@ -746,6 +746,9 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id) {
         // check time
         if (nodes[id].tmp_start_time + 5.0 < state.current_time) {
             // time expired stop listening for replies, return to main
+            if (settings.debug) {
+                printf("Node %d stopped listening for LFG-R\n", id);
+            }
             nodes[id].tmp_start_time = FLT_MAX;
             mcu_return(nodes, id, own_function_number, 0);
             return 0;  
