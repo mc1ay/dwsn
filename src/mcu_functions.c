@@ -165,12 +165,16 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             return 0;
         }
         else {
+            // Mark channel as scanned
+            nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
+
             // Check for LFG
             if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
             }
+   
             // Keep scanning if not at last channel
             // See how many unscanned channels are left
             int unscanned_channel_count = 0;
@@ -207,13 +211,15 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         // Mark channel as scanned
-        nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
         if (return_value == 1) {
             // Activity on channel, get packet
             mcu_call(nodes, id, own_function_number, 1, 7);
             return 0;
         }
         else {
+            // Mark channel as scanned
+            nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
+
             // Didn't hear anything, go to next channel
             // See how many unscanned channels are left
             int unscanned_channel_count = 0;
@@ -225,14 +231,23 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             if (unscanned_channel_count == 0) {
                 // If all channels scanned, clear array and scan again until timer expires
                 // Initialize tmp_scanned_chans array
-                for (int i = 0; i < settings.channels; i++) {
-                    nodes[id].tmp_scanned_chans[i] = 0;
+                            // check time
+                if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
+                    // time expired, stop transmit after resetting timer
+                    nodes[id].tmp_start_time = FLT_MAX;
+                    mcu_return(nodes, id, own_function_number, 0);
+                    return 0;
                 }
-                // Pick random start channel
-                nodes[id].active_channel = rand() % settings.channels;
-                // Check if first channel is busy
-                mcu_call(nodes, id, own_function_number, 0, 4); 
-                return 0;
+                else {
+                    for (int i = 0; i < settings.channels; i++) {
+                        nodes[id].tmp_scanned_chans[i] = 0;
+                    }
+                    // Pick random start channel
+                    nodes[id].active_channel = rand() % settings.channels;
+                    // Check if first channel is busy
+                    mcu_call(nodes, id, own_function_number, 0, 4); 
+                    return 0;
+                }
             }
             else {
                 // Make array of channels that haven't been scanned
@@ -255,6 +270,8 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
     }
     else {
         if (nodes[id].tmp_start_time == FLT_MAX) {
+            // Set start time
+            nodes[id].tmp_start_time = state.current_time;
             // Not returning from a call (first entry)
             // Initialize LFG tmp array before scanning
             for (int i = 0; i < settings.channels; i++) {
@@ -268,15 +285,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             nodes[id].active_channel = rand() % settings.channels;
             // Check if first channel is busy
             mcu_call(nodes, id, own_function_number, 0, 4);
-        }
-        else {
-            // check time
-            if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
-                // time expired, stop transmit after resetting timer
-                nodes[id].tmp_start_time = FLT_MAX;
-                mcu_return(nodes, id, own_function_number, 0);
-            }
-        }   
+        }  
     }
     return 0;
 }
