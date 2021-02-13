@@ -7,12 +7,13 @@
 # Variables
 node_count_max=30
 broadcast_nodes=1
+debug=0
 
 dir=output/join_test/$(date +"%Y-%m-%d-%H-%M-%S")
 mkdir -p $dir
 
 total=0.0
-nodes=2
+nodes=$(echo $broadcast_nodes + 1 | bc -l)
 repeat_times=10
 repeat=0
 
@@ -20,10 +21,14 @@ while [ $nodes -lt $(expr $node_count_max + 1) ];
 do
     while [ $repeat -lt $repeat_times ];
     do
-        joined=$(bc -l <<< "scale=2;$(./dwsn -d1 -c$nodes -d1 -b$broadcast_nodes -m$node_count_max| grep 'added' | wc -l) / ($nodes - 1)")
+        cmd="./dwsn -d1 -c$(expr $nodes) -d1 -b$broadcast_nodes -m$nodes"
+        if [ $debug -gt 0 ]
+            then echo "Running \"$cmd\" with $(bc -l <<< "($nodes - $broadcast_nodes)") node(s)"
+        fi
+        joined=$(bc -l <<< "scale=2;$(eval $cmd| grep 'added' | wc -l) / ($nodes - $broadcast_nodes)")
         total=$(echo "$total + $joined" | bc)
         ((repeat=repeat+1))
-        echo "Run $repeat, $nodes nodes: $(echo "$joined * 100" | bc)% of $(expr $nodes - 1) successfully joined"
+        echo "Run $repeat, $nodes nodes: $(echo "$joined * 100" | bc)% of $(expr $nodes - $broadcast_nodes) successfully joined"
     done
     average=$(echo "$total / $repeat_times" | bc -l)
     echo "$nodes $average" >> $dir/output.txt
