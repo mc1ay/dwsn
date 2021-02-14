@@ -33,15 +33,16 @@ int main(int argc, char **argv) {
 
     // Print message about debug level
     if (settings.debug) {
-        printf("Debug level: %d", settings.debug);
+        printf("Debug level: %d\n", settings.debug);
     }
 
     // Seed random number generator if seed isn't specified
     if (settings.random_seed < 0) {
-        srand(time(NULL)); 
-        if (settings.verbose) {
-            printf("Seeded random number generator\n");
-        }
+        settings.random_seed = time(NULL);
+    }
+    srand(settings.random_seed); 
+    if (settings.verbose) {
+        printf("Seeded random number generator with: %d\n", settings.random_seed);
     }
 
     // Output parameters
