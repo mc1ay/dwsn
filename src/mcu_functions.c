@@ -169,7 +169,19 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             nodes[id].tmp_scanned_chans[nodes[id].active_channel] = 1;
 
             // Check for LFG
-            if (strcmp(nodes[return_value].send_packet, "LFG") == 0) {
+            char* token;
+            char incoming_buffer[256];
+
+            strncpy(incoming_buffer, nodes[return_value].send_packet, 256);
+
+            token = strtok(incoming_buffer, " ");
+            if (token != NULL) {
+                token = strtok(NULL, " ");
+            }
+            if (token != NULL) {
+                token = strtok(NULL, " ");
+            }
+            if (strcmp(token, "LFG") == 0) {
                 // Found LFG packet, add to LFG tmp array
                 // Put sending node id into correct channel slot of array
                 nodes[id].tmp_lfg_chans[nodes[id].active_channel] = return_value;
@@ -327,7 +339,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         rs_pop(&nodes[id].return_stack);
         if (return_value >= 0) {
             // If clear channel was found, broadcast LFG on it
-            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG");
+            snprintf(nodes[id].send_packet, 256, "N-ALL N-%d LFG", id);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
