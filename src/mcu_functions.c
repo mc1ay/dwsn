@@ -75,6 +75,9 @@ int mcu_function_main(struct Node* nodes, int id) {
             // set active channel to same channel as strongest LFG broadcaster
             nodes[id].active_channel = nodes[strongest_node_id].active_channel;
 
+            // set destination node id
+            nodes[id].dest_node = strongest_node_id;
+
             // call respond_lfg
             mcu_call(nodes, id, own_function_number, 2, 9);
             return 0;
@@ -653,7 +656,8 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
             return 0;
         }
         else if (return_value == 0) {
-            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "LFG-R %d", id);
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "N-%d N-%d LFG-R", 
+                     nodes[id].dest_node, id);
             // add random wait value before transmitting to minimize collisions
             mcu_call(nodes, id, own_function_number, 3, 11);
             return 0;
@@ -663,7 +667,8 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
         // Returning from transmit_message_begin
         // No error checking for now
         if (settings.debug) {
-            printf("Node %d sent LFG-R on channel %d\n", id, nodes[id].active_channel);
+            printf("Node %d sent \"%s\" on channel %d\n", id, 
+                   nodes[id].send_packet, nodes[id].active_channel);
         }
         rs_pop(&nodes[id].return_stack);
         mcu_call(nodes, id, own_function_number, 2, 6);
@@ -721,51 +726,69 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id) {
             return 0;
         }
         else {
-            // Check for LFG
-            if (strncmp(nodes[return_value].send_packet, "LFG-R", 5) == 0) {
-                if (settings.debug) {
-                    printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
-                }
-                // Found LFG-R packet, add node to group
-                int available_slot = -1;
-                int i = 0;
-                do {
-                    if (nodes[id].group_list[i] == return_value) {
-                        // already in group, re-send ACK
+            // Check for LFG-R
+            char* token;
+            char incoming_buffer[256];
+
+            strncpy(incoming_buffer, nodes[return_value].send_packet, 256);
+
+            token = strtok(incoming_buffer, " ");
+            char my_id[6];
+            char sender_id[6];
+            snprintf(my_id, 6, "N-%d", id);
+            
+            // Extract dest and src node IDs from packet
+            if (strcmp(token, my_id) == 0) {
+                token = strtok(NULL, " ");
+                strncpy(sender_id, token, 6);
+
+                // Check if third token is "LFG-R"
+                token = strtok(NULL, " ");
+                if (strcmp(token, "LFG-R") == 0) {
+                    if (settings.debug) {
+                        printf("Node %d heard 'LFG-R' from node %d\n", id, return_value);
+                    }
+                    // Found LFG-R packet, add node to group
+                    int available_slot = -1;
+                    int i = 0;
+                    do {
+                        if (nodes[id].group_list[i] == return_value) {
+                            // already in group, re-send ACK
+                            nodes[id].dest_node = return_value;
+                            mcu_call(nodes, id, own_function_number, 0, 12);
+                            return 0; 
+                        }
+                        if (nodes[id].group_list[i] == -1) {
+                            available_slot = i;
+                        }
+                        i++;
+                    }
+                    while (i < settings.group_max - 1 && available_slot == -1);
+    
+                    if (available_slot == -1) {
+                        // group is full (TO-DO, respond to this)
+                        // for now, return to main
+                        nodes[id].tmp_start_time = FLT_MAX;
+                        mcu_return(nodes, id, own_function_number, 0);
+                        return 0;
+                    }
+                    else {
+                        // add node to group list
+                        if (settings.debug) {
+                            printf("node %d added node %d to group\n", id, return_value);
+                        }
+                        nodes[id].group_list[available_slot] = return_value;
+                        // send ACK
                         nodes[id].dest_node = return_value;
                         mcu_call(nodes, id, own_function_number, 0, 12);
-                        return 0; 
+                        return 0;                    
                     }
-                    if (nodes[id].group_list[i] == -1) {
-                        available_slot = i;
-                    }
-                    i++;
-                }
-                while (i < settings.group_max - 1 && available_slot == -1);
- 
-                if (available_slot == -1) {
-                    // group is full (TO-DO, respond to this)
-                    // for now, return to main
-                    nodes[id].tmp_start_time = FLT_MAX;
-                    mcu_return(nodes, id, own_function_number, 0);
-                    return 0;
                 }
                 else {
-                    // add node to group list
-                    if (settings.debug) {
-                        printf("node %d added node %d to group\n", id, return_value);
-                    }
-                    nodes[id].group_list[available_slot] = return_value;
-                    // send ACK
-                    nodes[id].dest_node = return_value;
-                    mcu_call(nodes, id, own_function_number, 0, 12);
-                    return 0;                    
+                    // Not LFG-R packet, keep listening
+                    mcu_call(nodes, id, own_function_number, 0, 4);
+                    return 0;
                 }
-            }
-            else {
-                // Not LFG-R packet, keep listening
-                mcu_call(nodes, id, own_function_number, 0, 4);
-                return 0;
             }
         }
     }
