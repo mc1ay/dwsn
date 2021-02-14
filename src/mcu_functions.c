@@ -307,13 +307,22 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
  * Return Label 2 returns from: 6 (transmit_message_complete)
  * Return Label 2 reason:       Turn off transmit
 
+ * Return Label 3 returns from: 11 (transmit_message_complete)
+ * Return Label 3 reason:       Wait before scanning
+
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
 int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
     int own_function_number = 2;
-                                
-    if (nodes[id].return_stack->returning_from == 3) {
+
+    if (nodes[id].return_stack->returning_from == 11) {
+        // Returned from random wait
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 0, 3);
+        return 0;
+    }                            
+    else if (nodes[id].return_stack->returning_from == 3) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         if (return_value >= 0) {
@@ -354,7 +363,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         if (nodes[id].tmp_start_time == FLT_MAX) {
             // First call
             nodes[id].tmp_start_time = state.current_time;
-            mcu_call(nodes, id, own_function_number, 0, 3);
+            mcu_call(nodes, id, own_function_number, 3, 11);
             return 0;
         }
         else {
