@@ -58,6 +58,7 @@ struct Node {
     int* tmp_scanned_chans;
     double tmp_start_time;
     int dest_node;
+    int broadcaster;
 };
 
 int initialize_nodes(struct Node*); 

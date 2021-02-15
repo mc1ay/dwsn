@@ -123,11 +123,13 @@ int mcu_function_main(struct Node* nodes, int id) {
         // First time entering main
         // Broadcast from broadcast_percentage number of nodes
         if (rand() % 100 < settings.broadcast_percentage) {
+            nodes[id].broadcaster = 1;
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
         else {
             // Scan from remaining nodes
+            nodes[id].broadcaster = 0;
             mcu_call(nodes, id, own_function_number, 1, 1);
             return 0;
         }    
