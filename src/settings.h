@@ -27,7 +27,7 @@ struct Settings {
     int verbose;
     int output;
     int channels;
-    int initial_broadcast_nodes;
+    int broadcast_percentage;
     char* output_dir;
     int use_pthreads;
 };

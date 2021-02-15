@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
         printf("Terminal velocity: %f meters/second\n", settings.terminal_velocity);
         printf("Spread factor: %f\n", settings.spread_factor);
         printf("Default power output: %f\n", settings.default_power_output);
-        printf("Initial broadcast nodes: %d\n", settings.initial_broadcast_nodes);
+        printf("Broadcast percentage: %d\n", settings.broadcast_percentage);
     }
     
     if (settings.output) {

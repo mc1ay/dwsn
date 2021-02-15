@@ -121,9 +121,8 @@ int mcu_function_main(struct Node* nodes, int id) {
     }
     else {
         // First time entering main
-        // Broadcast from first node, others listen
-        if (id < settings.initial_broadcast_nodes) {
-            nodes[id].active_channel = 3 * id % 2;
+        // Broadcast from broadcast_percentage number of nodes
+        if (rand() % 100 < settings.broadcast_percentage) {
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }

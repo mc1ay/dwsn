@@ -31,7 +31,7 @@ void set_program_defaults() {
     settings.verbose = 1;
     settings.output = 0;
     settings.channels = 16;
-    settings.initial_broadcast_nodes = 2;
+    settings.broadcast_percentage = 20;
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
 }
@@ -77,7 +77,7 @@ void get_switches(int argc, char **argv) {
             settings.group_max = atoi(optarg);
             break;
         case 'b':
-            settings.initial_broadcast_nodes = atoi(optarg);
+            settings.broadcast_percentage = atoi(optarg);
             break;      
         case '?':
             if (optopt == 'c')
