@@ -48,6 +48,7 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].tmp_scanned_chans = malloc(sizeof(int) * settings.channels);
         nodes[i].tmp_start_time = FLT_MAX;
         nodes[i].broadcaster = 0;
+        nodes[i].group_cycle_start = 0;
 
         // Set all received signals to 0 initially
         for (int j = 0; j < settings.node_count; j++) {

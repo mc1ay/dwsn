@@ -121,6 +121,9 @@ int mcu_function_main(struct Node* nodes, int id) {
     }
     else {
         // First time entering main
+        // Set starting group cycle point
+        nodes[id].group_cycle_start = state.current_cycle;
+
         // Broadcast from broadcast_percentage number of nodes
         if (rand() % 100 < settings.broadcast_percentage) {
             nodes[id].broadcaster = 1;

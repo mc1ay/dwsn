@@ -30,6 +30,7 @@ struct Settings {
     int broadcast_percentage;
     char* output_dir;
     int use_pthreads;
+    int group_cycle_interval;
 };
 
 void set_program_defaults();

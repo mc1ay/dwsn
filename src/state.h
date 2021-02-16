@@ -18,6 +18,7 @@ struct State {
     int moving_nodes; 
     double current_time;
     int collisions;
+    unsigned long current_cycle;
 };
 
 int initialize_state();

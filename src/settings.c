@@ -34,11 +34,12 @@ void set_program_defaults() {
     settings.broadcast_percentage = 20;
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
+    settings.group_cycle_interval = 100000;
 }
 
 void get_switches(int argc, char **argv) {
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:i:")) != -1)
     switch (c) {
         case 'd':
             settings.debug = atoi(optarg);
@@ -78,7 +79,10 @@ void get_switches(int argc, char **argv) {
             break;
         case 'b':
             settings.broadcast_percentage = atoi(optarg);
-            break;      
+            break;  
+        case 'i':
+            settings.group_cycle_interval = atoi(optarg);
+            break;     
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);

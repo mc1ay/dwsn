@@ -59,6 +59,7 @@ struct Node {
     double tmp_start_time;
     int dest_node;
     int broadcaster;
+    int group_cycle_start;
 };
 
 int initialize_nodes(struct Node*); 
