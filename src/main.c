@@ -98,6 +98,7 @@ int main(int argc, char **argv) {
     // Print summary information
     if (settings.verbose) {
         printf("Simulation complete\n");
+        printf("Cycles: %lu\n", state.current_cycle);
         printf("Simulation time: %f seconds\n", runTime);        
     }
 

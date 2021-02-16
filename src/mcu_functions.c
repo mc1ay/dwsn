@@ -26,6 +26,7 @@ extern struct State state;
  * Return Label 4 returns from: 10 (scan_lfg_responses)
  * Return Label 5 returns from: 8 (sleep)
  * Return Label 6 returns from: 8 (sleep)
+ * Return Label 7 returns from: 14 (group_cycle_start)
 
  * Function Returns:            nothing
 **/
@@ -102,8 +103,16 @@ int mcu_function_main(struct Node* nodes, int id) {
 
     }
     else if (nodes[id].return_stack->returning_from == 8) {
-        // for now, stay asleep
         rs_pop(&nodes[id].return_stack);
+
+        // see if group cycle timer has expired
+        if (nodes[id].group_cycle_start + settings.group_cycle_interval >= state.current_cycle) {
+            // Timer expired
+            mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+
+        // if timer not expired, stay asleep
         mcu_call(nodes, id, own_function_number, 5, 8);
         return 0;
     }
@@ -119,23 +128,22 @@ int mcu_function_main(struct Node* nodes, int id) {
         mcu_call(nodes, id, own_function_number, 6, 8);
         return 0;
     }
-    else {
-        // First time entering main
-        // Set starting group cycle point
-        nodes[id].group_cycle_start = state.current_cycle;
-
-        // Broadcast from broadcast_percentage number of nodes
-        if (rand() % 100 < settings.broadcast_percentage) {
-            nodes[id].broadcaster = 1;
+    else if (nodes[id].return_stack->returning_from == 14) {
+        rs_pop(&nodes[id].return_stack);
+        if (nodes[id].broadcaster == 1) {
             mcu_call(nodes, id, own_function_number, 0, 2);
             return 0; 
         }
         else {
-            // Scan from remaining nodes
-            nodes[id].broadcaster = 0;
             mcu_call(nodes, id, own_function_number, 1, 1);
             return 0;
-        }    
+        }
+        return 0;
+    }
+    else {
+        // First time entering main
+        // Start group cycle
+        mcu_call(nodes, id, own_function_number, 7, 14);
     }
     return 0;
 }
@@ -987,5 +995,39 @@ int mcu_function_lfgr_get_ack(struct Node* nodes, int id) {
         nodes[id].tmp_start_time = state.current_time;
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
+    return 0;    
+}
+
+/**
+ * Function Number:             14
+ * Function Name:               group_cycle_start
+ * Function Description:        initialize group cycle for node
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_group_cycle_start(struct Node* nodes, int id) {    
+    int own_function_number = 14;
+
+    // Reset timer
+    nodes[id].group_cycle_start = state.current_cycle;
+
+    // If broadcaster, clear group list
+    if (nodes[id].broadcaster == 1) {
+        for (int i = 0; i < settings.group_max; i++) {
+            nodes[id].group_list[i] = -1;
+        }
+    }
+
+    // Use broadcast_percentage to decide next role
+    if (rand() % 100 < settings.broadcast_percentage) {
+        nodes[id].broadcaster = 1;
+    }
+    else {
+        nodes[id].broadcaster = 0;
+    }
+    
+    mcu_return(nodes, id, own_function_number, 0);
     return 0;    
 }

@@ -28,5 +28,6 @@ int mcu_function_scan_lfg_responses(struct Node*, int);
 int mcu_function_random_wait(struct Node*, int);
 int mcu_function_lfgr_send_ack(struct Node*, int);
 int mcu_function_lfgr_get_ack(struct Node*, int);
+int mcu_function_group_cycle_start(struct Node*, int);
 
 #endif

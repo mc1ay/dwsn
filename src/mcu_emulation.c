@@ -46,6 +46,7 @@ int update_mcu(struct Node* nodes) {
  * 11: random_wait
  * 12: lfgr_send_ack
  * 13: lfgr_get_ack
+ * 14: group_cycle_start
 **/
 int mcu_run_function(struct Node* nodes, int id) {
     double busy_time = 0.00;
@@ -173,7 +174,16 @@ int mcu_run_function(struct Node* nodes, int id) {
                 else {            
                     mcu_function_lfgr_get_ack(nodes, id);
                 }
-                break;            
+                break;     
+            case 14:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_group_cycle_start(nodes, id);
+                }
+                break;          
             default:
                 abort ();
         }
