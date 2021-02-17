@@ -34,7 +34,7 @@ void set_program_defaults() {
     settings.broadcast_percentage = 20;
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
-    settings.group_cycle_interval = 100000;
+    settings.group_cycle_interval = 20000;
 }
 
 void get_switches(int argc, char **argv) {
