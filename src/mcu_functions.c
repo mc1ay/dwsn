@@ -34,6 +34,9 @@ int mcu_function_main(struct Node* nodes, int id) {
     int own_function_number = 0;
 
     if (nodes[id].return_stack->returning_from == 1) {
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+
         // see if group cycle timer has expired
         if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
             printf("Node %d group timer expired without joining\n", id);
@@ -42,8 +45,6 @@ int mcu_function_main(struct Node* nodes, int id) {
             return 0;
         }
 
-        int return_value = nodes[id].return_stack->return_value;
-        rs_pop(&nodes[id].return_stack);
         if (return_value < 0) {    
             printf("Something is wrong\n");    
             // something is wrong
@@ -266,15 +267,15 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             }
             if (unscanned_channel_count == 0) {
                 // If all channels scanned, clear array and scan again until timer expires
-                // Initialize tmp_scanned_chans array
-                            // check time
+                // check time
                 if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
-                    // time expired, stop transmit after resetting timer
+                    // time expired, return to main
                     nodes[id].tmp_start_time = FLT_MAX;
                     mcu_return(nodes, id, own_function_number, 0);
                     return 0;
                 }
                 else {
+                    // Initialize tmp_scanned_chans array
                     for (int i = 0; i < settings.channels; i++) {
                         nodes[id].tmp_scanned_chans[i] = 0;
                     }
@@ -321,7 +322,16 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             nodes[id].active_channel = rand() % settings.channels;
             // Check if first channel is busy
             mcu_call(nodes, id, own_function_number, 0, 4);
-        }  
+        }
+        else {
+            // check time
+            if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
+                // time expired, return to main
+                nodes[id].tmp_start_time = FLT_MAX;
+                mcu_return(nodes, id, own_function_number, 0);
+                return 0;
+            }
+        }   
     }
     return 0;
 }
