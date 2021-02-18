@@ -99,7 +99,7 @@ int main(int argc, char **argv) {
     if (settings.verbose) {
         printf("Simulation complete\n");
         printf("Cycles: %lu\n", state.current_cycle);
-        printf("Simulation time: %f seconds\n", runTime);        
+        printf("Simulation time: %f seconds\n", state.current_time);        
     }
 
     if (settings.debug) {
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
         }
     }
     if (settings.verbose) {
-        printf("Final clock time: %f seconds\n", state.current_time);
+        printf("Final clock time: %f seconds\n", runTime);
     }
     
     if (settings.verbose) {
