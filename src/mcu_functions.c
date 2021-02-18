@@ -681,6 +681,15 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+    
+        // see if group cycle timer has expired
+        if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
+            // Timer expired
+            printf("Node %d timer expired during sleep\n", id);
+            mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+    
         if (return_value == 1) {
             // channel was busy, try again
             mcu_call(nodes, id, own_function_number, 0, 4);
