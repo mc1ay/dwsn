@@ -38,49 +38,49 @@ struct cycle_timer* cycle_timer_get(struct cycle_timer* head, int function, int 
 }
 
 struct cycle_timer* cycle_timer_remove(struct cycle_timer* head, struct cycle_timer* nd) {
-    /* if the node is the first node */
+    // first node
     if (nd == head) {
         struct cycle_timer* front = head;
         head = head->next;
         front->next = NULL;
         /* is this the last node in the list */
-        if(front == head) {
+        if (front == head) {
             head = NULL;
         }
         free(front);
     }
  
-    /* if the node is the last node */
+    // last node 
     else if (nd->next == NULL) { 
         struct cycle_timer* cursor = head;
         struct cycle_timer* back = NULL;
-        while(cursor->next != NULL) {
+        while (cursor->next != NULL) {
             back = cursor;
             cursor = cursor->next;
         }
-        if(back != NULL) {
+        if (back != NULL) {
             back->next = NULL;
         }
     
-        /* if this is the last node in the list*/
-        if(cursor == head) {
+        // if this is the last node in the list
+        if (cursor == head) {
             head = NULL;
         }
     
         free(cursor);
     }
  
-    /* if the node is in the middle */
+    // node is in the middle
     else {
         struct cycle_timer* cursor = head;
-        while(cursor != NULL) {
-            if(cursor->next == nd) {
+        while (cursor != NULL) {
+            if (cursor->next == nd) {
                 break;
             }
             cursor = cursor->next;
         }
     
-        if(cursor != NULL) {
+        if (cursor != NULL) {
             struct cycle_timer* tmp = cursor->next;
             cursor->next = tmp->next;
             tmp->next = NULL;

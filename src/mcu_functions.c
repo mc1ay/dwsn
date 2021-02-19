@@ -180,6 +180,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         cycle_timer_get(nodes[id].timers, own_function_number, 0);
 
     if (tmp_timer != NULL) {
+        // Timer found, see if expired
         if (tmp_timer->start + 1000  < state.current_cycle) {
             // time expired, delete timer and return to main
             nodes[id].timers = 
@@ -189,6 +190,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
             return 0;    
         }
     }
+
     if (nodes[id].return_stack->returning_from == 7) {
         // Returning from receive function
         // Return value is sending node ID
@@ -321,6 +323,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         }
     }
     else {
+        // First time entering function
         // Create cycle timer
         nodes[id].timers = 
             cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle);
