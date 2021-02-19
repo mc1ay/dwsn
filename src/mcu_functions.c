@@ -662,6 +662,22 @@ int mcu_function_sleep(struct Node* nodes, int id) {
 int mcu_function_respond_lfg(struct Node* nodes, int id) {
     int own_function_number = 9;
     
+    // Check cycle timer
+    struct cycle_timer* tmp_timer =
+        cycle_timer_get(nodes[id].timers, own_function_number, 0);
+
+    if (tmp_timer != NULL) {
+        // Timer found, see if expired
+        if (tmp_timer->start + 1000  < state.current_cycle) {
+            // time expired, delete timer and return to main
+            nodes[id].timers = 
+                cycle_timer_remove(nodes[id].timers, tmp_timer);
+
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;    
+        }
+    }
+    
     if (nodes[id].return_stack->returning_from == 13) {
         // See if ACK was received
         int return_value = nodes[id].return_stack->return_value;
@@ -732,6 +748,11 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
     }
     else {
         // Not returning from a call (first entry)
+        // Create cycle timer
+        nodes[id].timers = 
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle);
+
+        // Check for activity on channel    
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;   
