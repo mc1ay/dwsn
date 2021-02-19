@@ -13,7 +13,7 @@
 struct cycle_timer* cycle_timer_create(struct cycle_timer* head, int function, int label, unsigned long start) {
     struct cycle_timer* new_timer = malloc(sizeof(struct cycle_timer*));
 
-    if(new_timer == NULL) {
+    if (new_timer == NULL) {
         printf("Timer memory allocation error\n");
         exit(0);
     }
@@ -21,19 +21,16 @@ struct cycle_timer* cycle_timer_create(struct cycle_timer* head, int function, i
     new_timer->label = label;
     new_timer->start = start;
     new_timer->next = head;
- 
-    head = new_timer;
-    return head;
+
+    return new_timer;
 }
 
 struct cycle_timer* cycle_timer_get(struct cycle_timer* head, int function, int label) {
  
-    struct cycle_timer *cursor = head;
-    while(cursor!=NULL) {
-        if(cursor->function == function) {
-            if(cursor->label == label) {
-                return cursor;
-            }
+    struct cycle_timer *cursor = head; 
+    while (cursor != NULL) {
+        if (cursor->function == function && cursor->label == label) {
+            return cursor;
         }
         cursor = cursor->next;
     }
