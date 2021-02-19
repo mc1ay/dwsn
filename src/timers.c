@@ -10,7 +10,11 @@
 #include "settings.h"
 #include "state.h"
 
-struct cycle_timer* cycle_timer_create(struct cycle_timer* head, int function, int label, unsigned long start) {
+struct cycle_timer* cycle_timer_create(struct cycle_timer* head, 
+                                       int function, 
+                                       int label, 
+                                       unsigned long start,
+                                       unsigned long expiration) {
     struct cycle_timer* new_timer = malloc(sizeof(struct cycle_timer*));
 
     if (new_timer == NULL) {
@@ -20,6 +24,7 @@ struct cycle_timer* cycle_timer_create(struct cycle_timer* head, int function, i
     new_timer->function = function;
     new_timer->label = label;
     new_timer->start = start;
+    new_timer->expiration = expiration;
     new_timer->next = head;
 
     return new_timer;
