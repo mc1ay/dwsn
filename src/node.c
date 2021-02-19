@@ -10,6 +10,7 @@
 #include "mcu_emulation.h"
 #include "settings.h"
 #include "state.h"
+#include "timers.h"
 
 extern struct Settings settings;
 extern struct State state;
@@ -49,6 +50,7 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].tmp_start_time = FLT_MAX;
         nodes[i].broadcaster = 0;
         nodes[i].group_cycle_start = 0;
+        nodes[i].timers = malloc(sizeof(struct cycle_timer)); 
 
         // Set all received signals to 0 initially
         for (int j = 0; j < settings.node_count; j++) {
@@ -59,6 +61,11 @@ int initialize_nodes(struct Node* nodes) {
         for (int j = 0; j < settings.group_max; j++) {
             nodes[i].group_list[j] = -1;
         }
+
+        // Initialize timer head node
+        nodes[i].timers->function = -1;
+        nodes[i].timers->label = -1;
+        nodes[i].timers->next = NULL;
 
         if (settings.output) {
             sprintf(file_path, "%s/node-%d%s", settings.output_dir, i, ".txt");

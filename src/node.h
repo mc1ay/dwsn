@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "settings.h"
+#include "timers.h"
 
 #define XYACCELDELTAMAX 0.005
 #define DRAGVARIANCE 0.05
@@ -60,6 +61,7 @@ struct Node {
     int dest_node;
     int broadcaster;
     unsigned long group_cycle_start;
+    struct cycle_timer* timers;
 };
 
 int initialize_nodes(struct Node*); 
