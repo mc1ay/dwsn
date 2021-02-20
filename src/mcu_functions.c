@@ -75,6 +75,9 @@ int mcu_function_main(struct Node* nodes, int id) {
             }
             // if no available nodes, scan again
             if (strongest_node_id == -1) {
+                if (settings.debug) {
+                    printf("Node %d didn't hear any LFG messages, scanning again\n", id);
+                }
                 mcu_call(nodes, id, own_function_number, 1, 1);
                 return 0;
             }
@@ -175,22 +178,6 @@ int mcu_function_main(struct Node* nodes, int id) {
 int mcu_function_scan_lfg(struct Node* nodes, int id) {
     int own_function_number = 1;
 
-    // Check cycle timer
-    struct cycle_timer* tmp_timer =
-        cycle_timer_get(nodes[id].timers, own_function_number, 0);
-
-    if (tmp_timer != NULL) {
-        // Timer found, see if expired
-        if (tmp_timer->start + 1000  < state.current_cycle) {
-            // time expired, delete timer and return to main
-            nodes[id].timers = 
-                cycle_timer_remove(nodes[id].timers, tmp_timer);
-
-            mcu_return(nodes, id, own_function_number, 0);
-            return 0;    
-        }
-    }
-
     if (nodes[id].return_stack->returning_from == 7) {
         // Returning from receive function
         // Return value is sending node ID
@@ -238,8 +225,15 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
                 }
             }
             if (unscanned_channel_count == 0) {
-                // If all channels scanned, return to main
-                mcu_return(nodes, id, own_function_number, return_value);
+                // If all channels scanned, clear array and scan again 
+                // Initialize tmp_scanned_chans array
+                for (int i = 0; i < settings.channels; i++) {
+                    nodes[id].tmp_scanned_chans[i] = 0;
+                }
+                // Pick random start channel
+                nodes[id].active_channel = rand() % settings.channels;
+                // Check if first channel is busy
+                mcu_call(nodes, id, own_function_number, 0, 4); 
                 return 0;
             }
             else {
@@ -264,6 +258,13 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
         // Returning from check_channel_busy function
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;
+        }
+    
         // Mark channel as scanned
         if (return_value == 1) {
             // Activity on channel, get packet
@@ -283,25 +284,16 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
                 }
             }
             if (unscanned_channel_count == 0) {
-                // If all channels scanned, clear array and scan again until timer expires
-                // check time
-                if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
-                    // time expired, return to main
-                    nodes[id].tmp_start_time = FLT_MAX;
-                    mcu_return(nodes, id, own_function_number, 0);
-                    return 0;
+                // If all channels scanned, clear array and scan again 
+                // Initialize tmp_scanned_chans array
+                for (int i = 0; i < settings.channels; i++) {
+                    nodes[id].tmp_scanned_chans[i] = 0;
                 }
-                else {
-                    // Initialize tmp_scanned_chans array
-                    for (int i = 0; i < settings.channels; i++) {
-                        nodes[id].tmp_scanned_chans[i] = 0;
-                    }
-                    // Pick random start channel
-                    nodes[id].active_channel = rand() % settings.channels;
-                    // Check if first channel is busy
-                    mcu_call(nodes, id, own_function_number, 0, 4); 
-                    return 0;
-                }
+                // Pick random start channel
+                nodes[id].active_channel = rand() % settings.channels;
+                // Check if first channel is busy
+                mcu_call(nodes, id, own_function_number, 0, 4); 
+                return 0;
             }
             else {
                 // Make array of channels that haven't been scanned
@@ -325,8 +317,11 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
     else {
         // First time entering function
         // Create cycle timer
+        if (settings.debug) {
+            printf("Node %d created cycle timer for function %d\n", id, own_function_number);
+        }
         nodes[id].timers = 
-            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle);
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);
 
         // Initialize LFG tmp array before scanning
         for (int i = 0; i < settings.channels; i++) {
@@ -661,27 +656,18 @@ int mcu_function_sleep(struct Node* nodes, int id) {
 **/
 int mcu_function_respond_lfg(struct Node* nodes, int id) {
     int own_function_number = 9;
-    
-    // Check cycle timer
-    struct cycle_timer* tmp_timer =
-        cycle_timer_get(nodes[id].timers, own_function_number, 0);
 
-    if (tmp_timer != NULL) {
-        // Timer found, see if expired
-        if (tmp_timer->start + 1000  < state.current_cycle) {
-            // time expired, delete timer and return to main
-            nodes[id].timers = 
-                cycle_timer_remove(nodes[id].timers, tmp_timer);
-
-            mcu_return(nodes, id, own_function_number, 0);
-            return 0;    
-        }
-    }
-    
     if (nodes[id].return_stack->returning_from == 13) {
         // See if ACK was received
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
+
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;
+        }
+
         if (return_value == 1) {
             // ACK was received, return to caller
             mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
@@ -706,11 +692,9 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
     
-        // see if group cycle timer has expired
-        if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
-            // Timer expired
-            printf("Node %d timer expired during sleep\n", id);
-            mcu_call(nodes, id, own_function_number, 7, 14);
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            mcu_return(nodes, id, own_function_number, 0);
             return 0;
         }
     
@@ -750,7 +734,7 @@ int mcu_function_respond_lfg(struct Node* nodes, int id) {
         // Not returning from a call (first entry)
         // Create cycle timer
         nodes[id].timers = 
-            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle);
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);
 
         // Check for activity on channel    
         mcu_call(nodes, id, own_function_number, 0, 4);

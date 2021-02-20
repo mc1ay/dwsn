@@ -10,12 +10,15 @@
 #include "settings.h"
 #include "state.h"
 
+extern struct State state;
+
+
 struct cycle_timer* cycle_timer_create(struct cycle_timer* head, 
                                        int function, 
                                        int label, 
                                        unsigned long start,
                                        unsigned long expiration) {
-    struct cycle_timer* new_timer = malloc(sizeof(struct cycle_timer*));
+    struct cycle_timer* new_timer = malloc(sizeof(struct cycle_timer));
 
     if (new_timer == NULL) {
         printf("Timer memory allocation error\n");
@@ -93,4 +96,18 @@ struct cycle_timer* cycle_timer_remove(struct cycle_timer* head, struct cycle_ti
         }
     }
     return head;
+}
+
+int cycle_timer_check_expired(struct cycle_timer* head, int function, int label) {
+    int expired = 0;
+    struct cycle_timer* tmp_timer = cycle_timer_get(head, function, label);
+    if (tmp_timer != NULL) {
+        // Timer found, see if expired
+        if (tmp_timer->start + tmp_timer->expiration  < state.current_cycle) {
+            // time expired, delete timer inform caller
+            head = cycle_timer_remove(head, tmp_timer);
+            expired = 1;
+        }
+    }
+    return expired;
 }

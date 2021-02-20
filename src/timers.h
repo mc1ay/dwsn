@@ -20,5 +20,6 @@ struct cycle_timer {
 struct cycle_timer* cycle_timer_create(struct cycle_timer* head, int function, int label, unsigned long start, unsigned long expiration);
 struct cycle_timer* cycle_timer_get(struct cycle_timer* head, int function, int label);
 struct cycle_timer* cycle_timer_remove(struct cycle_timer* head, struct cycle_timer* nd);
+int cycle_timer_check_expired(struct cycle_timer* head, int function, int label);
 
 #endif

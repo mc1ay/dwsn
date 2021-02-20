@@ -50,6 +50,7 @@ int update_mcu(struct Node* nodes) {
 **/
 int mcu_run_function(struct Node* nodes, int id) {
     double busy_time = 0.00;
+    //printf("Node %d function %d\n", id, nodes[id].current_function);
 
     mcu_update_busy_time(nodes, id);
 
