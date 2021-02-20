@@ -933,7 +933,7 @@ int mcu_function_lfgr_send_ack(struct Node* nodes, int id) {
         }
         else if (return_value == 0) {
             snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), 
-                     "ACK LFG-R %d", nodes[id].dest_node);
+                     "N-%d N-%d ACK LFG-R", nodes[id].dest_node, id);
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -948,6 +948,10 @@ int mcu_function_lfgr_send_ack(struct Node* nodes, int id) {
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
         // No error checking for now, just return channel number
+        if (settings.debug) {
+            printf("Node %d sent \"%s\" on channel %d\n", id, 
+                   nodes[id].send_packet, nodes[id].active_channel);
+        }
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
         return 0;
@@ -988,23 +992,39 @@ int mcu_function_lfgr_get_ack(struct Node* nodes, int id) {
             return 0;
         }
         else {
-            // Check for LFG ACK
-            char packet_to_match[256];
-            snprintf(packet_to_match, sizeof(packet_to_match), 
-                     "ACK LFG-R %d", id);
-            if (strcmp(nodes[return_value].send_packet, packet_to_match) == 0) {
-                // Found LFG-R ACK packet, return to caller
-                if (settings.debug) {
-                    printf("Node %d received ACK\n", id);
+            // Check for LFG-R
+            char* token;
+            char incoming_buffer[256];
+
+            strncpy(incoming_buffer, nodes[return_value].send_packet, 256);
+
+            token = strtok(incoming_buffer, " ");
+            char my_id[6];
+            char sender_id[6];
+            snprintf(my_id, 6, "N-%d", id);
+            
+            // Extract dest and src node IDs from packet
+            if (strcmp(token, my_id) == 0) {
+                token = strtok(NULL, " ");
+                strncpy(sender_id, token, 6);
+
+                // Check if third token is "ACK"
+                token = strtok(NULL, " ");
+                if (strcmp(token, "ACK") == 0) {
+                    // Check if fourth token is "ACK"
+                    token = strtok(NULL, " ");
+                    if (strcmp(token, "LFG-R") == 0) {    
+                        if (settings.debug) {
+                            printf("Node %d received ACK\n", id);
+                        }
+                        mcu_return(nodes, id, own_function_number, 1);
+                        return 0;
+                    }
                 }
-                mcu_return(nodes, id, own_function_number, 1);
-                return 0;
             }
-            else {
-                // Not LFG-R ACK packet, keep listening
-                mcu_call(nodes, id, own_function_number, 0, 4);
-                return 0;
-            }
+            // Not LFG-R ACK packet, keep listening
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
         }
     }
     else if (nodes[id].return_stack->returning_from == 4) {
