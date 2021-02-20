@@ -1005,13 +1005,15 @@ int mcu_function_lfgr_get_ack(struct Node* nodes, int id) {
             
             // Extract dest and src node IDs from packet
             if (strcmp(token, my_id) == 0) {
+                // First token is own id, message is for this node
                 token = strtok(NULL, " ");
+                // Second token is sender id
                 strncpy(sender_id, token, 6);
 
                 // Check if third token is "ACK"
                 token = strtok(NULL, " ");
                 if (strcmp(token, "ACK") == 0) {
-                    // Check if fourth token is "ACK"
+                    // Check if fourth token is "LFG-R"
                     token = strtok(NULL, " ");
                     if (strcmp(token, "LFG-R") == 0) {    
                         if (settings.debug) {
