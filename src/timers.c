@@ -18,12 +18,14 @@ struct cycle_timer* cycle_timer_create(struct cycle_timer* head,
                                        int label, 
                                        unsigned long start,
                                        unsigned long expiration) {
+    // Allocate memory for new timer node
     struct cycle_timer* new_timer = malloc(sizeof(struct cycle_timer));
-
     if (new_timer == NULL) {
         printf("Timer memory allocation error\n");
         exit(0);
     }
+
+    // Assign parameters to new timer node
     new_timer->function = function;
     new_timer->label = label;
     new_timer->start = start;
