@@ -7,8 +7,10 @@
 **/
 
 #include <ctype.h>
+#include <ini.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include "settings.h"
 
@@ -35,6 +37,56 @@ void set_program_defaults() {
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
     settings.group_cycle_interval = 20000;
+}
+
+int inih_handler(void* user, const char* section, const char* name,
+                   const char* value)
+{
+    struct Settings* pconfig = (struct Settings*)user;
+
+    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    if (MATCH("program", "node_count")) {
+        pconfig->node_count = atoi(value);
+    } else if (MATCH("program", "gravity")) {
+        pconfig->gravity = atof(value);
+    } else if (MATCH("program", "time_resolution")) {
+        pconfig->time_resolution = atof(value);
+    } else if (MATCH("program", "broadcast_percentage")) {
+        pconfig->broadcast_percentage = atoi(value);        
+    } else if (MATCH("program", "use_pthreads")) {
+        pconfig->use_pthreads = atoi(value);        
+    } else if (MATCH("program", "seed")) {
+        pconfig->random_seed = atoi(value);        
+    } else if (MATCH("program", "group_cycle_interval")) {
+        pconfig->group_cycle_interval = atoi(value);        
+    } else if (MATCH("file_output", "output")) {
+        pconfig->output = atoi(value);        
+    } else if (MATCH("file_output", "write_interval")) {
+        pconfig->write_interval = atof(value);        
+    } else if (MATCH("terminal_output", "verbose")) {
+        pconfig->verbose = atoi(value);        
+    } else if (MATCH("terminal_output", "debug")) {
+        pconfig->debug = atoi(value);        
+    } else if (MATCH("nodes", "start_x")) {
+        pconfig->start_x = atof(value);        
+    } else if (MATCH("nodes", "start_y")) {
+        pconfig->start_y = atof(value);        
+    } else if (MATCH("nodes", "start_z")) {
+        pconfig->start_z = atof(value);        
+    } else if (MATCH("nodes", "terminal_velocity")) {
+        pconfig->terminal_velocity = atof(value);        
+    } else if (MATCH("nodes", "spread_factor")) {
+        pconfig->spread_factor = atof(value);        
+    } else if (MATCH("nodes", "power_output")) {
+        pconfig->default_power_output = atof(value);        
+    } else if (MATCH("nodes", "group_max")) {
+        pconfig->group_max = atoi(value);        
+    } else if (MATCH("nodes", "channels")) {
+        pconfig->channels = atoi(value);        
+    } else {
+        return 0;  /* unknown section/name, error */
+    }
+    return 1;
 }
 
 void get_switches(int argc, char **argv) {

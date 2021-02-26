@@ -6,16 +6,19 @@
  * @date    12/26/2020
 **/
 
+#include <ini.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include "node.h"
 #include "mcu_emulation.h"
 #include "file_output.h"
 #include "settings.h"
 #include "state.h"
+
 
 struct Settings settings;
 struct State state;
@@ -24,7 +27,15 @@ int main(int argc, char **argv) {
     // Initialization and defaults
     int ret = 0;
     set_program_defaults();
-    
+
+    // If .ini file exists parse it
+    if(access("dwsn.ini", F_OK ) == 0 ) {
+        if (ini_parse("dwsn.ini", inih_handler, &settings) < 0) {
+            printf("Error reading 'dwsn.ini'\n");
+        return 1;
+        }
+    }
+
     // get command line switches
     get_switches(argc, argv);
 

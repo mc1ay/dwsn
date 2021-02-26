@@ -3,3 +3,4 @@ dwsn
 output/
 *.*~
 .DS_Store
+dwsn.ini

@@ -35,5 +35,7 @@ struct Settings {
 
 void set_program_defaults();
 void get_switches(int argc, char **argv);
+int inih_handler(void* user, const char* section, const char* name,
+                   const char* value);
 
 #endif

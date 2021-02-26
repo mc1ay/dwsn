@@ -1,5 +1,5 @@
 dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o
-	cc -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o -lm
+	cc -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o -lm -linih
 	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o
 main.o:
 	cc -Wall -g -c src/main.c
