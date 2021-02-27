@@ -85,7 +85,14 @@ int inih_handler(void* user, const char* section, const char* name,
     } else if (MATCH("nodes", "channels")) {
         pconfig->channels = atoi(value);   
     } else if (MATCH("nodes", "sensors")) {
-        pconfig->sensor_count = atoi(value);      
+        pconfig->sensor_count = atoi(value);  
+        pconfig->sensor_types = malloc(sizeof(int));
+    } else if (MATCH("sensor1", "type")) {
+        pconfig->sensor_types[0] = atoi(value); 
+    } else if (MATCH("sensor2", "type")) {
+        pconfig->sensor_types[1] = atoi(value);   
+    } else if (MATCH("sensor3", "type")) {
+        pconfig->sensor_types[2] = atoi(value);      
     } else {
         return 0;  /* unknown section/name, error */
     }

@@ -14,7 +14,7 @@
 #define SENSOR_TYPE_ALTIMETER       2
 
 struct sensor {
-    int sensor_type;
+    int type;
     float reading;
 };
 

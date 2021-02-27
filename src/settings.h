@@ -32,6 +32,7 @@ struct Settings {
     int use_pthreads;
     int group_cycle_interval;
     int sensor_count;
+    int* sensor_types;
 };
 
 void set_program_defaults();

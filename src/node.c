@@ -63,6 +63,11 @@ int initialize_nodes(struct Node* nodes) {
             nodes[i].group_list[j] = -1;
         }
 
+        // Set sensor types
+        for (int j = 0; j < settings.sensor_count; j++) {
+            nodes[i].sensors[j].type = settings.sensor_types[j];
+        }
+
         // Initialize timer head node
         nodes[i].timers->function = -1;
         nodes[i].timers->label = -1;
