@@ -229,3 +229,17 @@ void rs_pop(struct RS_Element** stack){
         printf("The stack is empty.\n");
     }
 }
+
+int update_sensor(struct Node* nodes, int id, int sensor_number) {
+    if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_TEMP) {
+        // not yet implemented
+    }
+    else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ACCELEROMETER) { 
+        // put acceleration data into reading string
+    }
+    else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ALTIMETER) { 
+        // put z position data into reading string
+    }
+
+    return 0;
+}

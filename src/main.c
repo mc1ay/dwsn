@@ -16,7 +16,6 @@
 #include "node.h"
 #include "mcu_emulation.h"
 #include "file_output.h"
-#include "sensor.h"
 #include "settings.h"
 #include "state.h"
 

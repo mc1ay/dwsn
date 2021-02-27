@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "settings.h"
-#include "sensor.h"
 #include "timers.h"
 
 #ifndef node_H
@@ -19,6 +18,17 @@
 
 #define XYACCELDELTAMAX 0.005
 #define DRAGVARIANCE 0.05
+
+#define SENSOR_TYPE_TEMP            0
+#define SENSOR_TYPE_ACCELEROMETER   1
+#define SENSOR_TYPE_ALTIMETER       2
+
+#define READING_BUFFER_SIZE         64
+
+struct sensor {
+    int type;
+    char reading[READING_BUFFER_SIZE];
+};
 
 // Function stack element for mcu function emulation
 struct FS_Element{ 
@@ -76,5 +86,6 @@ void fs_push(int, int, struct FS_Element**);
 void fs_pop(struct FS_Element**);
 void rs_push(int, int, int, struct RS_Element**);
 void rs_pop(struct RS_Element**);
+int update_sensor(struct Node*, int, int);
 
 #endif

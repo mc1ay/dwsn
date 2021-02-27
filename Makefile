@@ -1,6 +1,6 @@
-dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o sensor.o
-	cc -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o sensor.o -lm -linih
-	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o sensor.o
+dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o 
+	cc -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o -lm -linih
+	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o
 main.o:
 	cc -Wall -g -c src/main.c
 node.o:
@@ -17,5 +17,3 @@ state.o:
 	cc -Wall -g -c src/state.c
 timers.o:
 	cc -Wall -g -c src/timers.c
-sensor.o:
-	cc -Wall -g -c src/sensor.c
