@@ -233,7 +233,9 @@ void rs_pop(struct RS_Element** stack){
 
 int update_sensor(struct Node* nodes, int id, int sensor_number) {
     if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_TEMP) {
-        // not yet implemented
+        // not yet implemented, use generic value for now
+        snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f", 20.0);
+
     }
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ACCELEROMETER) { 
         snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f %f %f",
