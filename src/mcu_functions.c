@@ -28,6 +28,7 @@ extern struct State state;
  * Return Label 5 returns from: 8 (sleep)
  * Return Label 6 returns from: 8 (sleep)
  * Return Label 7 returns from: 14 (group_cycle_start)
+ * Return Lable 8 returns from: 15 (sensor_data_send)
 
  * Function Returns:            nothing
 **/
@@ -115,12 +116,19 @@ int mcu_function_main(struct Node* nodes, int id) {
 
     }
     else if (nodes[id].return_stack->returning_from == 8) {
+        int label = nodes[id].return_stack->return_to_label;
         rs_pop(&nodes[id].return_stack);
 
         // see if group cycle timer has expired
         if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
             // Timer expired
             mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+
+        if (label == 3) {
+            // non-broadcaster, send sensor data
+            mcu_call(nodes, id, own_function_number, 8, 15);
             return 0;
         }
 
@@ -150,6 +158,11 @@ int mcu_function_main(struct Node* nodes, int id) {
             mcu_call(nodes, id, own_function_number, 1, 1);
             return 0;
         }
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 8) {
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 3, 8);
         return 0;
     }
     else {
@@ -1088,6 +1101,59 @@ int mcu_function_group_cycle_start(struct Node* nodes, int id) {
     else {
         nodes[id].broadcaster = 0;
     }
+    
+    mcu_return(nodes, id, own_function_number, 0);
+    return 0;    
+}
+
+/**
+ * Function Number:             15
+ * Function Name:               sensor_data_send
+ * Function Description:        Send sensor data to group broadcaster
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_sensor_data_send(struct Node* nodes, int id) {    
+    int own_function_number = 15;
+
+    // Update sensor data
+    for (int i = 0; i < settings.sensor_count; i++) {
+        update_sensor(nodes, id, i);
+    }
+
+    // Generate message to send
+    snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "N-%d N-%d DATA ", 
+             nodes[id].dest_node, id);
+    char sensor_id[2];
+    for (int i = 0; i < settings.sensor_count; i++) {
+        snprintf(sensor_id, 2, "%d", i);
+        strncat(nodes[id].send_packet, "S", 2);
+        strncat(nodes[id].send_packet, sensor_id, 3);
+        strncat(nodes[id].send_packet, ": ", 3);
+        strncat(nodes[id].send_packet, nodes[id].sensors[i].reading, READING_BUFFER_SIZE);
+        strncat(nodes[id].send_packet, " ", 2);
+    }
+    if (settings.debug) {
+        printf("Node %d sending \"%s\"\n", id, nodes[id].send_packet);
+    }
+    
+    mcu_return(nodes, id, own_function_number, 0);
+    return 0;    
+}
+
+/**
+ * Function Number:             16
+ * Function Name:               sensor_data_recv
+ * Function Description:        Receive sensor data from group nodes
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_sensor_data_recv(struct Node* nodes, int id) {    
+    int own_function_number = 16;
     
     mcu_return(nodes, id, own_function_number, 0);
     return 0;    
