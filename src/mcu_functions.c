@@ -1118,34 +1118,80 @@ int mcu_function_group_cycle_start(struct Node* nodes, int id) {
 int mcu_function_sensor_data_send(struct Node* nodes, int id) {    
     int own_function_number = 15;
 
-    // Update sensor data
-    for (int i = 0; i < settings.sensor_count; i++) {
-        update_sensor(nodes, id, i);
-    }
-
-    // Generate message to send
-    char sensor_id[2];
-    char message_time[10];
-
-    snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "N-%d N-%d DATA ", 
-             nodes[id].dest_node, id);
-    for (int i = 0; i < settings.sensor_count; i++) {
-        snprintf(sensor_id, 2, "%d", i);
-        strncat(nodes[id].send_packet, "S", 2);
-        strncat(nodes[id].send_packet, sensor_id, 3);
-        strncat(nodes[id].send_packet, ": ", 3);
-        strncat(nodes[id].send_packet, nodes[id].sensors[i].reading, READING_BUFFER_SIZE);
-        strncat(nodes[id].send_packet, " ", 2);
-    }
-    snprintf(message_time, 10, "%f", state.current_time);
-    strncat(nodes[id].send_packet, "TIME ", 6);
-    strncat(nodes[id].send_packet, message_time, 11);
-
-    if (settings.debug) {
-        printf("Node %d sending \"%s\"\n", id, nodes[id].send_packet);
-    }
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
     
-    mcu_return(nodes, id, own_function_number, 0);
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;
+        }
+    
+        if (return_value == 1) {
+            // channel was busy, try again
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
+        }
+        else if (return_value == 0) {
+            // Send packet
+            mcu_call(nodes, id, own_function_number, 1, 5);
+            return 0;
+        }
+    }
+    else if (nodes[id].return_stack->returning_from == 5) {
+        // Returning from transmit_message_begin
+        // No error checking for now
+        if (settings.debug) {
+            printf("Node %d sent \"%s\" on channel %d\n", id, 
+                   nodes[id].send_packet, nodes[id].active_channel);
+        }
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 2, 6);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 6) {
+        // Returning from transmit_message_complete
+        // No error checking for now, just check for ACK
+        rs_pop(&nodes[id].return_stack);
+        // Check for ACK
+        mcu_return(nodes, id, own_function_number, 0);
+        return 0;
+    }
+    else {
+        // Not returning from a call (first entry)
+        // Create cycle timer
+        nodes[id].timers = 
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);
+
+        // Update sensor data
+        for (int i = 0; i < settings.sensor_count; i++) {
+            update_sensor(nodes, id, i);
+        }
+    
+        // Generate message to send
+        char sensor_id[2];
+        char message_time[10];
+
+        snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "N-%d N-%d DATA ", 
+                nodes[id].dest_node, id);
+        for (int i = 0; i < settings.sensor_count; i++) {
+            snprintf(sensor_id, 2, "%d", i);
+            strncat(nodes[id].send_packet, "S", 2);
+            strncat(nodes[id].send_packet, sensor_id, 3);
+            strncat(nodes[id].send_packet, ": ", 3);
+            strncat(nodes[id].send_packet, nodes[id].sensors[i].reading, READING_BUFFER_SIZE);
+            strncat(nodes[id].send_packet, " ", 2);
+        }
+        snprintf(message_time, 10, "%f", state.current_time);
+        strncat(nodes[id].send_packet, "TIME ", 6);
+        strncat(nodes[id].send_packet, message_time, 11);
+        
+        // Check for activity on channel    
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
+
     return 0;    
 }
 
