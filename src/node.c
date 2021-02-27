@@ -232,10 +232,10 @@ void rs_pop(struct RS_Element** stack){
 }
 
 int update_sensor(struct Node* nodes, int id, int sensor_number) {
+    // Update sensor based on sensor type
     if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_TEMP) {
         // not yet implemented, use generic value for now
         snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f", 20.0);
-
     }
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ACCELEROMETER) { 
         snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f %f %f",
@@ -246,6 +246,11 @@ int update_sensor(struct Node* nodes, int id, int sensor_number) {
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ALTIMETER) {
         snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f", nodes[id].z_pos);
     }
-
+    else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_GPS) { 
+        snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f %f %f",
+                 nodes[id].x_pos,
+                 nodes[id].y_pos,
+                 nodes[id].z_pos);
+    }
     return 0;
 }

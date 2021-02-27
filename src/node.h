@@ -22,6 +22,7 @@
 #define SENSOR_TYPE_TEMP            0
 #define SENSOR_TYPE_ACCELEROMETER   1
 #define SENSOR_TYPE_ALTIMETER       2
+#define SENSOR_TYPE_GPS             3
 
 #define READING_BUFFER_SIZE         64
 

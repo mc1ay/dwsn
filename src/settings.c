@@ -92,7 +92,9 @@ int inih_handler(void* user, const char* section, const char* name,
     } else if (MATCH("sensor2", "type")) {
         pconfig->sensor_types[1] = atoi(value);   
     } else if (MATCH("sensor3", "type")) {
-        pconfig->sensor_types[2] = atoi(value);      
+        pconfig->sensor_types[2] = atoi(value);
+    } else if (MATCH("sensor4", "type")) {
+        pconfig->sensor_types[3] = atoi(value);        
     } else {
         return 0;  /* unknown section/name, error */
     }
