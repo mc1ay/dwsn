@@ -11,6 +11,7 @@
 #include "settings.h"
 #include "state.h"
 #include "timers.h"
+#include <string.h>
 
 extern struct Settings settings;
 extern struct State state;
@@ -235,10 +236,10 @@ int update_sensor(struct Node* nodes, int id, int sensor_number) {
         // not yet implemented
     }
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ACCELEROMETER) { 
-        // put acceleration data into reading string
+        // not yet implemented
     }
-    else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ALTIMETER) { 
-        // put z position data into reading string
+    else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ALTIMETER) {
+        snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f", nodes[id].z_pos);
     }
 
     return 0;
