@@ -236,7 +236,10 @@ int update_sensor(struct Node* nodes, int id, int sensor_number) {
         // not yet implemented
     }
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ACCELEROMETER) { 
-        // not yet implemented
+        snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f %f %f",
+                 nodes[id].x_acceleration,
+                 nodes[id].y_acceleration,
+                 nodes[id].z_acceleration);
     }
     else if (nodes[id].sensors[sensor_number].type == SENSOR_TYPE_ALTIMETER) {
         snprintf(nodes[id].sensors[sensor_number].reading, READING_BUFFER_SIZE, "%f", nodes[id].z_pos);
