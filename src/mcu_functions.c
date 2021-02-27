@@ -40,7 +40,6 @@ int mcu_function_main(struct Node* nodes, int id) {
 
         // see if group cycle timer has expired
         if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
-            printf("Node %d group timer expired without joining\n", id);
             // Timer expired
             mcu_call(nodes, id, own_function_number, 7, 14);
             return 0;
@@ -121,7 +120,6 @@ int mcu_function_main(struct Node* nodes, int id) {
         // see if group cycle timer has expired
         if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
             // Timer expired
-            printf("Node %d timer expired during sleep\n", id);
             mcu_call(nodes, id, own_function_number, 7, 14);
             return 0;
         }

@@ -31,6 +31,7 @@ struct Settings {
     char* output_dir;
     int use_pthreads;
     int group_cycle_interval;
+    int sensor_count;
 };
 
 void set_program_defaults();

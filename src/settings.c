@@ -37,6 +37,7 @@ void set_program_defaults() {
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
     settings.group_cycle_interval = 20000;
+    settings.sensor_count = 0;
 }
 
 int inih_handler(void* user, const char* section, const char* name,
@@ -82,7 +83,9 @@ int inih_handler(void* user, const char* section, const char* name,
     } else if (MATCH("nodes", "group_max")) {
         pconfig->group_max = atoi(value);        
     } else if (MATCH("nodes", "channels")) {
-        pconfig->channels = atoi(value);        
+        pconfig->channels = atoi(value);   
+    } else if (MATCH("nodes", "sensors")) {
+        pconfig->sensor_count = atoi(value);      
     } else {
         return 0;  /* unknown section/name, error */
     }

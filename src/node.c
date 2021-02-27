@@ -50,7 +50,7 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].tmp_start_time = FLT_MAX;
         nodes[i].broadcaster = 0;
         nodes[i].group_cycle_start = 0;
-        nodes[i].timers = malloc(sizeof(struct cycle_timer)); 
+        nodes[i].timers = malloc(sizeof(struct cycle_timer));
 
         // Set all received signals to 0 initially
         for (int j = 0; j < settings.node_count; j++) {
