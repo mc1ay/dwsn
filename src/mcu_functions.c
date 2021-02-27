@@ -1124,9 +1124,11 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
     }
 
     // Generate message to send
+    char sensor_id[2];
+    char message_time[10];
+
     snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "N-%d N-%d DATA ", 
              nodes[id].dest_node, id);
-    char sensor_id[2];
     for (int i = 0; i < settings.sensor_count; i++) {
         snprintf(sensor_id, 2, "%d", i);
         strncat(nodes[id].send_packet, "S", 2);
@@ -1135,6 +1137,10 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
         strncat(nodes[id].send_packet, nodes[id].sensors[i].reading, READING_BUFFER_SIZE);
         strncat(nodes[id].send_packet, " ", 2);
     }
+    snprintf(message_time, 10, "%f", state.current_time);
+    strncat(nodes[id].send_packet, "TIME ", 6);
+    strncat(nodes[id].send_packet, message_time, 11);
+
     if (settings.debug) {
         printf("Node %d sending \"%s\"\n", id, nodes[id].send_packet);
     }
