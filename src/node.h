@@ -11,13 +11,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "settings.h"
+#include "sensor.h"
 #include "timers.h"
-
-#define XYACCELDELTAMAX 0.005
-#define DRAGVARIANCE 0.05
 
 #ifndef node_H
 #define node_H
+
+#define XYACCELDELTAMAX 0.005
+#define DRAGVARIANCE 0.05
 
 // Function stack element for mcu function emulation
 struct FS_Element{ 
@@ -62,6 +63,7 @@ struct Node {
     int broadcaster;
     unsigned long group_cycle_start;
     struct cycle_timer* timers;
+    struct sensor* sensors;
 };
 
 int initialize_nodes(struct Node*); 

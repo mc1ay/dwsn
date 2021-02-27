@@ -16,6 +16,7 @@
 #include "node.h"
 #include "mcu_emulation.h"
 #include "file_output.h"
+#include "sensor.h"
 #include "settings.h"
 #include "state.h"
 
@@ -29,9 +30,17 @@ int main(int argc, char **argv) {
 
     // If .ini file exists parse it
     if(access("dwsn.ini", F_OK ) == 0 ) {
+        if (settings.verbose) {
+            printf("Processing settings from dwsn.ini: ");
+        } 
         if (ini_parse("dwsn.ini", inih_handler, &settings) < 0) {
             printf("Error reading 'dwsn.ini'\n");
-        return 1;
+            return 1;
+        }
+        else {
+            if (settings.verbose) {
+                printf("OK\n");
+            } 
         }
     }
 
