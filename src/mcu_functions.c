@@ -29,7 +29,9 @@ extern struct State state;
  * Return Label 5 returns from: 8 (sleep)
  * Return Label 6 returns from: 8 (sleep)
  * Return Label 7 returns from: 14 (group_cycle_start)
- * Return Lable 8 returns from: 15 (sensor_data_send)
+ * Return Label 8 returns from: 15 (sensor_data_send)
+ * Return Label 9 returns from: 16 (sensor_data_recv)
+
 
  * Function Returns:            nothing
 **/
@@ -129,6 +131,7 @@ int mcu_function_main(struct Node* nodes, int id) {
 
         if (label == 3) {
             // non-broadcaster, send sensor data
+            // TO-DO, add return for this
             mcu_call(nodes, id, own_function_number, 8, 15);
             return 0;
         }
@@ -144,9 +147,9 @@ int mcu_function_main(struct Node* nodes, int id) {
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 10) {
-        // for now, just go to sleep
+        // listen for DATA packets
         rs_pop(&nodes[id].return_stack);
-        mcu_call(nodes, id, own_function_number, 6, 8);
+        mcu_call(nodes, id, own_function_number, 9, 16);
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 14) {
@@ -161,9 +164,22 @@ int mcu_function_main(struct Node* nodes, int id) {
         }
         return 0;
     }
-    else if (nodes[id].return_stack->returning_from == 8) {
+    else if (nodes[id].return_stack->returning_from == 10) {
+        // listen for DATA packets
         rs_pop(&nodes[id].return_stack);
-        mcu_call(nodes, id, own_function_number, 3, 8);
+        mcu_call(nodes, id, own_function_number, 9, 16);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 16) {
+        rs_pop(&nodes[id].return_stack);
+        // see if group cycle timer has expired
+        if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
+            // Timer expired
+            mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+        // keep listening
+        mcu_call(nodes, id, own_function_number, 9, 16);
         return 0;
     }
     else {
@@ -1208,6 +1224,84 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
 int mcu_function_sensor_data_recv(struct Node* nodes, int id) {    
     int own_function_number = 16;
     
-    mcu_return(nodes, id, own_function_number, 0);
+    if (nodes[id].return_stack->returning_from == 7) {
+
+        // Returning from receive function
+        // Return value is sending node ID
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+        if (return_value == -1) {
+            // collision detected try again 
+            mcu_call(nodes, id, own_function_number, 1, 4);
+            return 0;
+        }
+        if (return_value == -2) {
+            // Nothing heard try again
+            mcu_call(nodes, id, own_function_number, 1, 4);
+            return 0;
+        }
+        else {
+            // Check for DATA message
+            char* token;
+            char incoming_buffer[256];
+
+            strncpy(incoming_buffer, nodes[return_value].send_packet, 256);
+
+            token = strtok(incoming_buffer, " ");
+            char my_id[6];
+            char sender_id[6];
+            snprintf(my_id, 6, "N-%d", id);
+            
+            // Extract dest and src node IDs from message
+            if (strcmp(token, my_id) == 0) {
+                token = strtok(NULL, " ");
+                strncpy(sender_id, token, 6);
+
+                // Check if third token is "DATA"
+                token = strtok(NULL, " ");
+                if (strcmp(token, "DATA") == 0) {
+                    if (settings.debug) {
+                        printf("Node %d heard DATA message from node %d\n", id, return_value);
+                    }
+                    // Add message to relay queue
+                    // *** TODO
+                }
+            }
+        }
+        // Keep listening
+        mcu_call(nodes, id, own_function_number, 0, 4);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+    
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            mcu_return(nodes, id, own_function_number, 0);
+            return 0;
+        }
+        // time not expired, continue
+        if (return_value == 1) {
+            // Activity on channel, get packet
+            mcu_call(nodes, id, own_function_number, 1, 7);
+            return 0;
+        }
+        else {
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;            
+        }
+    }
+    else {
+        // Not returning from a call (first entry)
+        // set start_time and check for activity on active channel
+        if (settings.debug) {
+            printf("Node %d listening for DATA packets on channel %d\n", id, nodes[id].active_channel);
+        }
+        nodes[id].timers = 
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);
+        mcu_call(nodes, id, own_function_number, 0, 4);
+    }
     return 0;    
 }
