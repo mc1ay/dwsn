@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "messages.h"
 #include "settings.h"
 #include "timers.h"
 
@@ -75,6 +76,7 @@ struct Node {
     unsigned long group_cycle_start;
     struct cycle_timer* timers;
     struct sensor* sensors;
+    struct stored_message* stored_messages;
 };
 
 int initialize_nodes(struct Node*); 

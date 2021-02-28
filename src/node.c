@@ -53,6 +53,8 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].group_cycle_start = 0;
         nodes[i].timers = malloc(sizeof(struct cycle_timer));
         nodes[i].sensors = malloc(sizeof(struct sensor) * settings.sensor_count);
+        nodes[i].stored_messages = malloc(sizeof(struct stored_message));
+
 
         // Set all received signals to 0 initially
         for (int j = 0; j < settings.node_count; j++) {
@@ -73,6 +75,10 @@ int initialize_nodes(struct Node* nodes) {
         nodes[i].timers->function = -1;
         nodes[i].timers->label = -1;
         nodes[i].timers->next = NULL;
+
+        // Initialize stored message head node
+        nodes[i].stored_messages->sender = -1;
+        nodes[i].stored_messages->next = NULL;
 
         if (settings.output) {
             sprintf(file_path, "%s/node-%d%s", settings.output_dir, i, ".txt");

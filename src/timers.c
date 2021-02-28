@@ -12,7 +12,6 @@
 
 extern struct State state;
 
-
 struct cycle_timer* cycle_timer_create(struct cycle_timer* head, 
                                        int function, 
                                        int label, 

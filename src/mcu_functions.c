@@ -7,6 +7,7 @@
 **/
 
 #include "mcu_functions.h"
+#include "messages.h"
 #include "state.h"
 #include "timers.h"
 
