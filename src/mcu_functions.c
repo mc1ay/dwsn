@@ -170,6 +170,21 @@ int mcu_function_main(struct Node* nodes, int id) {
         mcu_call(nodes, id, own_function_number, 9, 16);
         return 0;
     }
+    else if (nodes[id].return_stack->returning_from == 15) {
+        rs_pop(&nodes[id].return_stack);
+
+        // see if group cycle timer has expired
+        if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
+            // Timer expired
+            mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+        else {
+            // keep transmitting DATA packets 
+            mcu_call(nodes, id, own_function_number, 8, 15);
+        }
+        return 0;
+    }
     else if (nodes[id].return_stack->returning_from == 16) {
         rs_pop(&nodes[id].return_stack);
         // see if group cycle timer has expired
@@ -1225,7 +1240,6 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
     int own_function_number = 16;
     
     if (nodes[id].return_stack->returning_from == 7) {
-
         // Returning from receive function
         // Return value is sending node ID
         int return_value = nodes[id].return_stack->return_value;
@@ -1241,6 +1255,7 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
             return 0;
         }
         else {
+            printf("Node %d checking for DATA message\n", id);
             // Check for DATA message
             char* token;
             char incoming_buffer[256];
