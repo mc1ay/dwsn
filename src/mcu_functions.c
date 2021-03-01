@@ -402,6 +402,9 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
  * Return Label 3 returns from: 11 (transmit_message_complete)
  * Return Label 3 reason:       Wait before scanning
 
+ * Return Label 4 returns from: 5 (transmit_message_begin)
+ * Return Label 4 reason:       Subsequent transmits
+
  * Function Returns:            -1 - no clear channels
  *                              channel - sent LFG on <channel>
 **/
@@ -420,6 +423,9 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         if (return_value >= 0) {
             // If clear channel was found, broadcast LFG on it
             snprintf(nodes[id].send_packet, 256, "N-ALL N-%d LFG", id);
+        if (settings.debug) {
+            printf("Node %d broadcasting LFG on channel %d\n", id, nodes[id].active_channel);
+        }
             mcu_call(nodes, id, own_function_number, 1, 5);
             return 0;
         }
@@ -430,9 +436,11 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         }
     }
     else if (nodes[id].return_stack->returning_from == 5) {
-        // No error checking for now, just transmit until timer expired
-        if (settings.debug) {
-            printf("Node %d started broadcasting LFG on channel %d\n", id, nodes[id].active_channel);
+        // Check cycle timer
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            // No error checking for now, just transmit until timer expired
+            mcu_call(nodes, id, own_function_number, 4, 5);
+            return 0;
         }
         rs_pop(&nodes[id].return_stack);
         return 0;
@@ -444,28 +452,21 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         }
         // No error checking for now
         rs_pop(&nodes[id].return_stack);
-        // Reset timer and return
-        nodes[id].tmp_start_time = FLT_MAX;
+        // Return to main
         mcu_return(nodes, id, own_function_number, nodes[id].active_channel);
 
         return 0;
     }
     else {  
         // Not returning from a call
-        if (nodes[id].tmp_start_time == FLT_MAX) {
-            // First call
-            nodes[id].tmp_start_time = state.current_time;
-            mcu_call(nodes, id, own_function_number, 3, 11);
-            return 0;
+        // Create cycle timer
+        if (settings.debug) {
+            printf("Node %d created cycle timer for function %d\n", id, own_function_number);
         }
-        else {
-            // check time
-            if (nodes[id].tmp_start_time + 1000 * settings.time_resolution < state.current_time) {
-                // time expired, stop transmit after resetting timer
-                nodes[id].tmp_start_time = FLT_MAX;
-                mcu_call(nodes, id, own_function_number, 2, 6);
-            }
-        }   
+        nodes[id].timers = 
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);  
+        
+        mcu_call(nodes, id, own_function_number, 2, 6);
     }
     return 0;
 }
@@ -583,7 +584,9 @@ int mcu_function_check_channel_busy(struct Node* nodes, int id) {
 **/
 int mcu_function_transmit_message_begin(struct Node* nodes, int id) {
     int own_function_number = 5;
-    nodes[id].transmit_active = 1;
+    if (nodes[id].transmit_active == 0) {
+        nodes[id].transmit_active = 1;
+    }
     mcu_return(nodes, id, own_function_number, 1);
     return 0;    
 }
