@@ -901,12 +901,11 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
         // check time
-        if (nodes[id].tmp_start_time + 5.0 < state.current_time) {
+        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
             // time expired stop listening for replies, return to main
             if (settings.debug) {
                 printf("Node %d stopped listening for LFG-R\n", id);
             }
-            nodes[id].tmp_start_time = FLT_MAX;
             mcu_return(nodes, id, own_function_number, 0);
             return 0;  
         }
@@ -927,7 +926,13 @@ int mcu_function_scan_lfg_responses(struct Node* nodes, int id) {
         if (settings.debug) {
             printf("Node %d listening for LFG-R packets on channel %d\n", id, nodes[id].active_channel);
         }
-        nodes[id].tmp_start_time = state.current_time;
+
+        // Create cycle timer
+        if (settings.debug) {
+            printf("Node %d created cycle timer for function %d\n", id, own_function_number);
+        }
+        nodes[id].timers = 
+            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);  
 
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
