@@ -399,7 +399,7 @@ int mcu_function_scan_lfg(struct Node* nodes, int id) {
  * Return Label 2 returns from: 6 (transmit_message_complete)
  * Return Label 2 reason:       Turn off transmit
 
- * Return Label 3 returns from: 11 (transmit_message_complete)
+ * Return Label 3 returns from: 11 (random_wait)
  * Return Label 3 reason:       Wait before scanning
 
  * Return Label 4 returns from: 5 (transmit_message_begin)
@@ -436,14 +436,19 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         }
     }
     else if (nodes[id].return_stack->returning_from == 5) {
+        rs_pop(&nodes[id].return_stack);
         // Check cycle timer
+        printf("Node %d checking cycle timer\n", id);
         if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
+            // time expired, stop transmitting
+            mcu_call(nodes, id, own_function_number, 4, 6);
+            return 0;
+        }
+        else {
             // No error checking for now, just transmit until timer expired
             mcu_call(nodes, id, own_function_number, 4, 5);
             return 0;
         }
-        rs_pop(&nodes[id].return_stack);
-        return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
@@ -466,7 +471,7 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
         nodes[id].timers = 
             cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);  
         
-        mcu_call(nodes, id, own_function_number, 2, 6);
+        mcu_call(nodes, id, own_function_number, 3, 11);
     }
     return 0;
 }
