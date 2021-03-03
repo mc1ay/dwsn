@@ -438,7 +438,6 @@ int mcu_function_broadcast_lfg(struct Node* nodes, int id) {
     else if (nodes[id].return_stack->returning_from == 5) {
         rs_pop(&nodes[id].return_stack);
         // Check cycle timer
-        printf("Node %d checking cycle timer\n", id);
         if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
             // time expired, stop transmitting
             mcu_call(nodes, id, own_function_number, 4, 6);
@@ -1268,7 +1267,6 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
             return 0;
         }
         else {
-            printf("Node %d checking for DATA message\n", id);
             // Check for DATA message
             char* token;
             char incoming_buffer[256];
