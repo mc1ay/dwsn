@@ -1167,12 +1167,6 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
         int return_value = nodes[id].return_stack->return_value;
         rs_pop(&nodes[id].return_stack);
     
-        // Check cycle timer
-        if (cycle_timer_check_expired(nodes[id].timers, own_function_number, 0)) {
-            mcu_return(nodes, id, own_function_number, 0);
-            return 0;
-        }
-    
         if (return_value == 1) {
             // channel was busy, try again
             mcu_call(nodes, id, own_function_number, 0, 4);
@@ -1188,27 +1182,21 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
         // Returning from transmit_message_begin
         // No error checking for now
         if (settings.debug) {
-            printf("Node %d sent \"%s\" on channel %d\n", id, 
-                   nodes[id].send_packet, nodes[id].active_channel);
+            printf("Node %d sent \"%s\" on channel %d at tick %lu\n", id, 
+                   nodes[id].send_packet, nodes[id].active_channel, state.current_cycle);
         }
         rs_pop(&nodes[id].return_stack);
         mcu_call(nodes, id, own_function_number, 2, 6);
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
+        //printf("Returned from function 6 at tick %lu\n", state.current_cycle);
         // Returning from transmit_message_complete
-        // No error checking for now, just check for ACK
         rs_pop(&nodes[id].return_stack);
-        // Check for ACK
         mcu_return(nodes, id, own_function_number, 0);
         return 0;
     }
     else {
-        // Not returning from a call (first entry)
-        // Create cycle timer
-        nodes[id].timers = 
-            cycle_timer_create(nodes[id].timers, own_function_number, 0, state.current_cycle, 1000);
-
         // Update sensor data
         for (int i = 0; i < settings.sensor_count; i++) {
             update_sensor(nodes, id, i);
@@ -1287,7 +1275,7 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
                 token = strtok(NULL, " ");
                 if (strcmp(token, "DATA") == 0) {
                     if (settings.debug) {
-                        printf("Node %d heard DATA message from node %d\n", id, return_value);
+                        printf("Node %d heard DATA message from node %d at %lu\n", id, return_value, state.current_cycle);
                     }
                     // Add message to relay queue
                     // *** TODO

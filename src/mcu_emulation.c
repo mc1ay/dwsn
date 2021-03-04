@@ -108,7 +108,7 @@ int mcu_run_function(struct Node* nodes, int id) {
                 break;
             case 6:
                 if (nodes[id].busy_remaining < 0) {
-                    busy_time = 0.05;                // time to send packet?
+                    busy_time = settings.time_resolution * 5;                // time to send packet?
                     nodes[id].busy_remaining = busy_time;
                 }
                 else {            
