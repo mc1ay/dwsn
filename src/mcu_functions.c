@@ -1258,6 +1258,10 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
             // Check for DATA message
             char* token;
             char incoming_buffer[256];
+            char message[256];
+
+            // Zero out message string to eliminate proceeded garbage data
+            bzero(message, 256);
 
             strncpy(incoming_buffer, nodes[return_value].send_packet, 256);
 
@@ -1277,8 +1281,19 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
                     if (settings.debug) {
                         printf("Node %d heard DATA message from node %d at %lu\n", id, return_value, state.current_cycle);
                     }
+                    // Process remaining tokens
+                    token = strtok(NULL, " ");
+                    do {
+                        strncat(message, token, strlen(token));
+                        strncat(message, " ", 2);
+                        token = strtok(NULL, " ");
+                    } while (token != 0);
+                    if (settings.debug) {
+                        printf("Message: %s\n", message);
+                    }
+
                     // Add message to relay queue
-                    // *** TODO
+                    //node[id].stored_messages = stored_message_create(node[id].stored_messages, sender_id, message);
                 }
             }
         }
