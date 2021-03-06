@@ -21,16 +21,18 @@ extern struct State state;
  * Function Busy times:         None
  * Function Return Labels:      7
   
- * Return Label 0 returns from: 2 (broadcast_lfg)
- * Return Label 1 returns from: 1 (scan_lfg)
- * Return Label 2 returns from: 9 (respond_lfg)
- * Return Label 3 returns from: 8 (sleep)
- * Return Label 4 returns from: 10 (scan_lfg_responses)
- * Return Label 5 returns from: 8 (sleep)
- * Return Label 6 returns from: 8 (sleep)
- * Return Label 7 returns from: 14 (group_cycle_start)
- * Return Label 8 returns from: 15 (sensor_data_send)
- * Return Label 9 returns from: 16 (sensor_data_recv)
+ * Return Label  0 returns from: 2 (broadcast_lfg)
+ * Return Label  1 returns from: 1 (scan_lfg)
+ * Return Label  2 returns from: 9 (respond_lfg)
+ * Return Label  3 returns from: 8 (sleep)
+ * Return Label  4 returns from: 10 (scan_lfg_responses)
+ * Return Label  5 returns from: 8 (sleep)
+ * Return Label  6 returns from: 8 (sleep)
+ * Return Label  7 returns from: 14 (group_cycle_start)
+ * Return Label  8 returns from: 15 (sensor_data_send)
+ * Return Label  9 returns from: 16 (sensor_data_recv)
+ * Return Label 10 returns from: 17 (sensor_data_relay)
+
 
 
  * Function Returns:            nothing
@@ -193,6 +195,19 @@ int mcu_function_main(struct Node* nodes, int id) {
             mcu_call(nodes, id, own_function_number, 7, 14);
             return 0;
         }
+        // relay messages to ground
+        mcu_call(nodes, id, own_function_number, 10, 17);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 17) {
+        rs_pop(&nodes[id].return_stack);
+        // see if group cycle timer has expired
+        if (nodes[id].group_cycle_start + settings.group_cycle_interval <= state.current_cycle) {
+            // Timer expired
+            mcu_call(nodes, id, own_function_number, 7, 14);
+            return 0;
+        }
+        
         // keep listening
         mcu_call(nodes, id, own_function_number, 9, 16);
         return 0;
@@ -1190,7 +1205,6 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
         return 0;
     }
     else if (nodes[id].return_stack->returning_from == 6) {
-        //printf("Returned from function 6 at tick %lu\n", state.current_cycle);
         // Returning from transmit_message_complete
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, 0);
@@ -1288,12 +1302,9 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
                         strncat(message, " ", 2);
                         token = strtok(NULL, " ");
                     } while (token != 0);
-                    if (settings.debug) {
-                        printf("Message: %s\n", message);
-                    }
 
                     // Add message to relay queue
-                    //node[id].stored_messages = stored_message_create(node[id].stored_messages, sender_id, message);
+                    nodes[id].stored_messages = stored_message_create(nodes[id].stored_messages, atoi(sender_id), message);
                 }
             }
         }
@@ -1333,4 +1344,66 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
         mcu_call(nodes, id, own_function_number, 0, 4);
     }
     return 0;    
+}
+
+/**
+ * Function Number:             17
+ * Function Name:               sensor_data_relay
+ * Function Description:        Relay sensor data to ground
+ * Function Busy time:          0 
+ * Function Return Labels:      0
+
+ * Function Returns:            0 - void
+**/
+int mcu_function_sensor_data_relay(struct Node* nodes, int id) {    
+    int own_function_number = 17;
+    if (nodes[id].return_stack->returning_from == 4) {
+        // Returning from check_channel_busy function
+        int return_value = nodes[id].return_stack->return_value;
+        rs_pop(&nodes[id].return_stack);
+    
+        if (return_value == 1) {
+            // channel was busy, try again
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
+        }
+        else if (return_value == 0) {
+            // Send packet
+            mcu_call(nodes, id, own_function_number, 1, 5);
+            return 0;
+        }
+    }
+    else if (nodes[id].return_stack->returning_from == 5) {
+        // Returning from transmit_message_begin
+        // No error checking for now
+        rs_pop(&nodes[id].return_stack);
+        mcu_call(nodes, id, own_function_number, 2, 6);
+        return 0;
+    }
+    else if (nodes[id].return_stack->returning_from == 6) {
+        // Returning from transmit_message_complete
+        rs_pop(&nodes[id].return_stack);
+        if (settings.debug) {
+            printf("Node %d relayed message from %d\n", id, nodes[id].stored_messages->sender);
+        }
+        nodes[id].stored_messages = stored_message_remove(nodes[id].stored_messages, nodes[id].stored_messages);
+        // Check for more messages to relay
+        if (nodes[id].stored_messages->sender != -1) {
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet) + 128, "N-%d RELAY N-%d %s", 
+                     id, nodes[id].stored_messages->sender, nodes[id].stored_messages->message);
+            mcu_call(nodes, id, own_function_number, 0, 4);
+            return 0;
+        }
+    }
+    // For now just empty out the queue
+    if (nodes[id].stored_messages->sender != -1) {
+        snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet) + 128, "N-%d RELAY N-%d %s", 
+                 id, nodes[id].stored_messages->sender, nodes[id].stored_messages->message);
+        mcu_call(nodes, id, own_function_number, 0, 4);
+        return 0;
+    }
+    else {
+        mcu_return(nodes, id, own_function_number, 0);
+    }
+    return 0;
 }

@@ -33,54 +33,10 @@ struct stored_message* stored_message_create(struct stored_message* head,
 }
 
 struct stored_message* stored_message_remove(struct stored_message* head, struct stored_message* nd) {
-    // first node
-    if (nd == head) {
-        struct stored_message* front = head;
-        head = head->next;
-        front->next = NULL;
-        /* is this the last node in the list */
-        if (front == head) {
-            head = NULL;
-        }
-        free(front);
-    }
- 
-    // last node 
-    else if (nd->next == NULL) { 
-        struct stored_message* cursor = head;
-        struct stored_message* back = NULL;
-        while (cursor->next != NULL) {
-            back = cursor;
-            cursor = cursor->next;
-        }
-        if (back != NULL) {
-            back->next = NULL;
-        }
-    
-        // if this is the last node in the list
-        if (cursor == head) {
-            head = NULL;
-        }
-    
-        free(cursor);
-    }
- 
-    // node is in the middle
-    else {
-        struct stored_message* cursor = head;
-        while (cursor != NULL) {
-            if (cursor->next == nd) {
-                break;
-            }
-            cursor = cursor->next;
-        }
-    
-        if (cursor != NULL) {
-            struct stored_message* tmp = cursor->next;
-            cursor->next = tmp->next;
-            tmp->next = NULL;
-            free(tmp);
-        }
-    }
+    struct stored_message* front = head;
+    head = head->next;
+    front->next = NULL;
+    free(front);
+
     return head;
 }

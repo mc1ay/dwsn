@@ -49,6 +49,7 @@ int update_mcu(struct Node* nodes) {
  * 14: group_cycle_start
  * 15: sensor_data_send
  * 16: sensor_data_recv
+ * 17: sensor_data_relay
 **/
 int mcu_run_function(struct Node* nodes, int id) {
     double busy_time = 0.00;
@@ -204,7 +205,16 @@ int mcu_run_function(struct Node* nodes, int id) {
                 else {            
                     mcu_function_sensor_data_recv(nodes, id);
                 }
-                break;        
+                break;
+            case 17:
+                if (nodes[id].busy_remaining < 0) {
+                    busy_time = 0.00;       
+                    nodes[id].busy_remaining = busy_time;
+                }
+                else {            
+                    mcu_function_sensor_data_relay(nodes, id);
+                }
+                break;         
             default:
                 abort ();
         }
