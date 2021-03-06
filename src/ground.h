@@ -6,6 +6,8 @@
  * @date    3/6/2021
 **/
 
+#include "node.h"
+
 #ifndef ground_H
 #define ground_H
 
@@ -15,5 +17,6 @@ struct Ground_Station {
 };
 
 int initialize_ground(struct Ground_Station* ground);
+int update_ground(struct Node* nodes, struct Ground_Station* ground);
 
 #endif

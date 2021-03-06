@@ -6,7 +6,6 @@
  * @date    2/6/2021
 **/
 
-#include "node.h"
 #include "file_output.h"
 #include "mcu_emulation.h"
 #include "state.h"
@@ -24,7 +23,7 @@ int initialize_state() {
     return 0;
 }
 
-int clock_tick(struct Node* nodes) {
+int clock_tick(struct Node* nodes, struct Ground_Station* ground) {
     state.current_time += settings.time_resolution;
     
     if (settings.debug > 1) {
@@ -37,6 +36,7 @@ int clock_tick(struct Node* nodes) {
     update_velocity(nodes);
     update_position(nodes);
     update_mcu(nodes);
+    update_ground(nodes, ground);
 
     if (settings.output) {
         check_write_interval(nodes);

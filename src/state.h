@@ -8,6 +8,7 @@
 
 #include <time.h>
 #include "node.h"
+#include "ground.h"
 
 #ifndef state_H
 #define state_H
@@ -22,6 +23,6 @@ struct State {
 };
 
 int initialize_state();
-int clock_tick(struct Node* nodes);
+int clock_tick(struct Node* nodes, struct Ground_Station* ground);
 
 #endif

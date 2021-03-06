@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
     }
 
     while (state.moving_nodes != 0) {
-        clock_tick(nodes);
+        clock_tick(nodes, &ground);
         state.moving_nodes = 0; 
         for (int i = 0; i < settings.node_count; i++) {
             if (nodes[i].z_pos > 0) {
@@ -155,6 +155,10 @@ int main(int argc, char **argv) {
 
     if (settings.verbose) {
         printf("Ground station received %d messages\n", ground.messages_received);
+    }
+
+    if (settings.verbose) {
+        printf("Ground station detected %d collisions\n", ground.collisions_detected);
     }
     return 0;
 }
