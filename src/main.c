@@ -18,6 +18,7 @@
 #include "file_output.h"
 #include "settings.h"
 #include "state.h"
+#include "ground.h"
 
 struct Settings settings;
 struct State state;
@@ -82,15 +83,27 @@ int main(int argc, char **argv) {
         create_transmit_history_file();
     }
 
+    // Get ground station ready
+    if (settings.verbose) {
+        printf("Initializing ground station: ");
+    }
+    struct Ground_Station ground;
+    ret = initialize_ground(&ground);
+    if (ret == 0) {
+        if (settings.verbose) {
+            printf("OK\n");
+        }
+    }
+
     // Get nodes ready
     if (settings.verbose) {
-        printf("Initializing nodes\n");
+        printf("Initializing nodes: ");
     }
     struct Node nodes[settings.node_count];
     ret = initialize_nodes(nodes);
     if (ret == 0) {
         if (settings.verbose) {
-            printf("Initialization OK\n");
+            printf("OK\n");
         }
         state.moving_nodes = settings.node_count;
     }
@@ -116,7 +129,7 @@ int main(int argc, char **argv) {
     // Print summary information
     if (settings.verbose) {
         printf("Simulation complete\n");
-        printf("Cycles: %lu\n", state.current_cycle);
+        printf("Cycles processed: %lu\n", state.current_cycle);
         printf("Simulation time: %f seconds\n", state.current_time);        
     }
 
@@ -138,6 +151,10 @@ int main(int argc, char **argv) {
     
     if (settings.verbose) {
         printf("Total collisions detected: %d\n", state.collisions);
+    }
+
+    if (settings.verbose) {
+        printf("Ground station received %d messages\n", ground.messages_received);
     }
     return 0;
 }
