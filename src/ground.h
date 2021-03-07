@@ -14,6 +14,9 @@
 struct Ground_Station {
     int messages_received;
     int collisions_detected;
+    double x_pos;
+    double y_pos;
+    double z_pos;
 };
 
 int initialize_ground(struct Ground_Station* ground);

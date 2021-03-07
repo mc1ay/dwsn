@@ -17,6 +17,9 @@ extern struct State state;
 int initialize_ground(struct Ground_Station* ground) {
     ground->messages_received = 0;
     ground->collisions_detected = 0;
+    ground->x_pos = 0.0;
+    ground->y_pos = 0.0;
+    ground->z_pos = 0.0;
 
     return 0;
 }
