@@ -29,10 +29,10 @@ int update_ground(struct Node* nodes, struct Ground_Station* ground) {
     for (int i = 0; i < settings.channels; i++) {
         // Check each node
         // Later add signal strength update/checking
-        for (int j = 0; i < settings.node_count; i++) {
+        for (int j = 0; j < settings.node_count; j++) {
             if (nodes[j].transmit_active == 1 && nodes[j].active_channel == i) {
                 signals_detected++;
-                transmitting_node = i;
+                transmitting_node = j;
             }
         }
         // Check for collision
