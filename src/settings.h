@@ -33,6 +33,7 @@ struct Settings {
     int group_cycle_interval;
     int sensor_count;
     int* sensor_types;
+    int use_timeslots;
 };
 
 void set_program_defaults();

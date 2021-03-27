@@ -36,6 +36,7 @@ void set_program_defaults() {
     settings.broadcast_percentage = 20;
     settings.output_dir = malloc(sizeof(char) * 50);
     settings.use_pthreads = 0;
+    settings.use_timeslots = 1;
     settings.group_cycle_interval = 20000;
     settings.sensor_count = 0;
 }
@@ -56,6 +57,8 @@ int inih_handler(void* user, const char* section, const char* name,
         pconfig->broadcast_percentage = atoi(value);        
     } else if (MATCH("program", "use_pthreads")) {
         pconfig->use_pthreads = atoi(value);        
+    } else if (MATCH("program", "use_timeslots")) {
+        pconfig->use_timeslots = atoi(value);        
     } else if (MATCH("program", "seed")) {
         pconfig->random_seed = atoi(value);        
     } else if (MATCH("program", "group_cycle_interval")) {
@@ -103,7 +106,7 @@ int inih_handler(void* user, const char* section, const char* name,
 
 void get_switches(int argc, char **argv) {
     int c;
-    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:i:")) != -1)
+    while ((c = getopt(argc, argv, "d:v:c:g:r:z:t:s:e:p:o:m:b:i:l:")) != -1)
     switch (c) {
         case 'd':
             settings.debug = atoi(optarg);
@@ -147,6 +150,9 @@ void get_switches(int argc, char **argv) {
         case 'i':
             settings.group_cycle_interval = atoi(optarg);
             break;     
+        case 'l':
+            settings.use_timeslots = atoi(optarg);
+            break;    
         case '?':
             if (optopt == 'c')
                 fprintf (stderr, "Option -%c requires an argument.\n", optopt);
