@@ -75,6 +75,33 @@ int create_transmit_history_file() {
     return 0;
 }
 
+int create_ground_received_file() {
+    char file_path[100];
+    sprintf(file_path, "%s/ground_received.txt", settings.output_dir);
+    FILE *ground_received_file;
+    ground_received_file = fopen (file_path, "a");
+    fclose(ground_received_file);
+
+    return 0;
+}
+
+int log_ground_received_message(char* message, int length) {
+    // Open file for writing
+    char file_path[100];
+    sprintf(file_path, "%s/ground_received.txt", settings.output_dir);
+    FILE *ground_received_file;
+    ground_received_file = fopen (file_path, "a");
+
+    // Write received message to file
+    fputs(message, ground_received_file);
+    fputc('\n', ground_received_file);
+
+    // Close file
+    fclose(ground_received_file);
+
+    return 0;
+}
+
 int check_write_interval(struct Node* nodes) {
 
     char file_path[100];

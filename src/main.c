@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
         create_log_dir();
         // create transmit_history file and header
         create_transmit_history_file();
+        // create log of received messages at ground
+        create_ground_received_file();
     }
 
     // Get ground station ready

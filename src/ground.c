@@ -7,6 +7,7 @@
 **/
 
 #include <string.h>
+#include "file_output.h"
 #include "ground.h"
 #include "settings.h"
 #include "state.h"
@@ -75,6 +76,7 @@ int update_ground(struct Node* nodes, struct Ground_Station* ground) {
                     ground->messages_received++;
                     if (settings.output) {
                         // write to log file
+                        log_ground_received_message(message, strlen(message));
                     }
                 }
             }
