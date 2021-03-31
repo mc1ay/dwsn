@@ -1389,7 +1389,7 @@ int mcu_function_sensor_data_relay(struct Node* nodes, int id) {
         nodes[id].stored_messages = stored_message_remove(nodes[id].stored_messages, nodes[id].stored_messages);
         // Check for more messages to relay
         if (nodes[id].stored_messages->sender != -1) {
-            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet) + 128, "GROUND N-%d RELAY N-%d %s", 
+            snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "GROUND N-%d RELAY N-%d %s", 
                      id, nodes[id].stored_messages->sender, nodes[id].stored_messages->message);
             mcu_call(nodes, id, own_function_number, 0, 4);
             return 0;
@@ -1397,7 +1397,7 @@ int mcu_function_sensor_data_relay(struct Node* nodes, int id) {
     }
     // For now just empty out the queue
     if (nodes[id].stored_messages->sender != -1) {
-        snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet) + 128, "GROUND N-%d RELAY N-%d %s", 
+        snprintf(nodes[id].send_packet, sizeof(nodes[id].send_packet), "GROUND N-%d RELAY N-%d %s", 
                  id, nodes[id].stored_messages->sender, nodes[id].stored_messages->message);
         mcu_call(nodes, id, own_function_number, 0, 4);
         return 0;
