@@ -1304,7 +1304,7 @@ int mcu_function_sensor_data_recv(struct Node* nodes, int id) {
                     } while (token != 0);
 
                     // Add message to relay queue
-                    nodes[id].stored_messages = stored_message_create(nodes[id].stored_messages, atoi(sender_id), message);
+                    nodes[id].stored_messages = stored_message_create(nodes[id].stored_messages, return_value, message);
                 }
             }
         }
