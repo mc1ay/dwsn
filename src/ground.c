@@ -21,16 +21,21 @@ int initialize_ground(struct Ground_Station* ground) {
     ground->x_pos = 0.0;
     ground->y_pos = 0.0;
     ground->z_pos = 0.0;
+    ground->new_message_available = malloc(sizeof(int) * settings.channels);
+    for (int i = 0; i < settings.channels; i++) {
+        ground->new_message_available[i] = 1;
+    }
 
     return 0;
 }
 
 int update_ground(struct Node* nodes, struct Ground_Station* ground) {
-    int signals_detected = 0;
+    int signals_detected;
     int transmitting_node = -1;
 
     // Scan each channel
     for (int i = 0; i < settings.channels; i++) {
+        signals_detected = 0;
         // Check each node
         // Later add signal strength update/checking
         for (int j = 0; j < settings.node_count; j++) {
@@ -43,7 +48,7 @@ int update_ground(struct Node* nodes, struct Ground_Station* ground) {
         if (signals_detected > 1) {
             ground->collisions_detected++;
         }
-        else if (signals_detected == 1) {
+        else if (signals_detected == 1 && ground->new_message_available[i] == 1) {
             // Check for DATA message
             char* token;
             char incoming_buffer[256];
@@ -80,6 +85,11 @@ int update_ground(struct Node* nodes, struct Ground_Station* ground) {
                     }
                 }
             }
+            // Switch message available flag
+            ground->new_message_available[i] = 0;
+        }
+        else if (signals_detected == 0 && ground->new_message_available[i] == 0) {
+            ground->new_message_available[i] = 1;
         }
     }
     return 0;

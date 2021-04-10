@@ -1,23 +1,25 @@
+CC = gcc
+CFLAGS = -Wall -g -c
 dwsn: main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o messages.o ground.o
-	cc -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o messages.o ground.o -lm -linih
+	$(CC) -o dwsn main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o messages.o ground.o -lm -linih
 	rm main.o node.o mcu_emulation.o mcu_functions.o file_output.o settings.o state.o timers.o messages.o ground.o
 main.o:
-	cc -Wall -g -c src/main.c
+	$(CC) $(CFLAGS) src/main.c
 node.o:
-	cc -Wall -g -c src/node.c
+	$(CC) $(CFLAGS) src/node.c
 mcu_emulation.o:
-	cc -Wall -g -c src/mcu_emulation.c
+	$(CC) $(CFLAGS) src/mcu_emulation.c
 mcu_functions.o:
-	cc -Wall -g -c src/mcu_functions.c
+	$(CC) $(CFLAGS) src/mcu_functions.c
 file_output.o:
-	cc -Wall -g -c src/file_output.c
+	$(CC) $(CFLAGS) src/file_output.c
 settings.o:
-	cc -Wall -g -c src/settings.c
+	$(CC) $(CFLAGS) src/settings.c
 state.o:
-	cc -Wall -g -c src/state.c
+	$(CC) $(CFLAGS) src/state.c
 timers.o:
-	cc -Wall -g -c src/timers.c
+	$(CC) $(CFLAGS) src/timers.c
 messages.o:
-	cc -Wall -g -c src/messages.c
+	$(CC) $(CFLAGS) src/messages.c
 ground.o:
-	cc -Wall -g -c src/ground.c
+	$(CC) $(CFLAGS) src/ground.c
