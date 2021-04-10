@@ -25,7 +25,7 @@ void set_program_defaults() {
     settings.time_resolution = 0.001;
     settings.terminal_velocity = 8.0;
     settings.spread_factor = 20;
-    settings.default_power_output = 400;
+    settings.default_power_output = 20;
     settings.write_interval = 1.0;
     settings.group_max = 5;
     settings.random_seed = -1;
