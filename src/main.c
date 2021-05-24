@@ -156,11 +156,19 @@ int main(int argc, char **argv) {
     }
 
     if (settings.verbose) {
+        printf("Total messages sent: %lu\n", state.sent_messages);
+    }
+
+    if (settings.verbose) {
         printf("Ground station received %d messages\n", ground.messages_received);
     }
 
     if (settings.verbose) {
         printf("Ground station detected %d collisions\n", ground.collisions_detected);
+    }
+
+    if (settings.verbose) {
+        printf("Message succeess rate: %f\n", (float)ground.messages_received / state.sent_messages);
     }
     return 0;
 }
