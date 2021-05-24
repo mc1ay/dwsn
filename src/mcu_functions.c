@@ -1206,6 +1206,7 @@ int mcu_function_sensor_data_send(struct Node* nodes, int id) {
     }
     else if (nodes[id].return_stack->returning_from == 6) {
         // Returning from transmit_message_complete
+        state.sent_messages++;
         rs_pop(&nodes[id].return_stack);
         mcu_return(nodes, id, own_function_number, 0);
         return 0;

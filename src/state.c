@@ -19,6 +19,7 @@ int initialize_state() {
     state.current_time = 0;
     state.collisions = 0;
     state.current_cycle = 0;
+    state.sent_messages = 0;
 
     return 0;
 }

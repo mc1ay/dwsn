@@ -20,6 +20,7 @@ struct State {
     double current_time;
     int collisions;
     unsigned long current_cycle;
+    unsigned long sent_messages;
 };
 
 int initialize_state();
